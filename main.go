@@ -11,5 +11,8 @@ func main() {
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
+	e.GET("/hello", func(c echo.Context) error {
+		return c.String(http.StatusOK, "try pipeline")
+	})
 	e.Logger.Fatal(e.Start(":8080"))
 }
