@@ -155,7 +155,11 @@ func GetUser(c echo.Context) error {
 
 	claims := token.Claims.(jwt.MapClaims)
 
-	return c.JSON(http.StatusOK, claims)
+	var user model.User
+
+	config.DB.Where("id = ?", claims["ID"]).First(&user)
+
+	return c.JSON(http.StatusOK, user)
 }
 
 func DeleteUser(c echo.Context) error {
@@ -171,4 +175,58 @@ func DeleteUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "success delete data")
+}
+
+func UpdateUser(c echo.Context) error {
+	token := c.Get("user").(*jwt.Token)
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	id := claims["ID"]
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, "cant find data")
+	}
+
+	var user model.User
+	config.DB.Where("id = ?", id).First(&user)
+
+	json_map := make(map[string]interface{})
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
+	}
+
+	if json_map["email"] != "" {
+		user.Email = fmt.Sprintf("%v", json_map["email"])
+	}
+
+	if json_map["username"] != "" {
+		user.Username = fmt.Sprintf("%v", json_map["username"])
+	}
+
+	if json_map["password"] != "" {
+		user.Password = fmt.Sprintf("%v", json_map["password"])
+	}
+
+	if json_map["telpon"] != "" {
+		user.Telp = fmt.Sprintf("%v", json_map["telpon"])
+	}
+
+	if json_map["alamat"] != "" {
+		user.Alamat = fmt.Sprintf("%v", json_map["alamat"])
+	}
+
+	if json_map["gender"] != "" {
+		user.Gender = fmt.Sprintf("%v", json_map["gender"])
+	}
+
+	result := config.DB.Where("id = ?", id).Updates(&user)
+
+	if result.RowsAffected < 1 {
+		return c.JSON(http.StatusInternalServerError, "error when update data")
+	}
+
+	return c.JSON(http.StatusOK, "success update data")
 }
