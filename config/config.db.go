@@ -1,6 +1,8 @@
 package config
 
 import (
+
+	"capstone/model"
 	"fmt"
 	"log"
 	"os"
@@ -35,5 +37,11 @@ func Open() error {
 	if err != nil {
 		return err
 	}
+	InitMigrate()
 	return nil
+}
+
+func InitMigrate(){
+  DB.AutoMigrate(model.Doctor{},model.Article{},model.User{})
+	DB.AutoMigrate(model.OTP{})
 }
