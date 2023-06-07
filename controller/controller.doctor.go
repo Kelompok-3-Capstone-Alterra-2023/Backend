@@ -19,15 +19,13 @@ func CreateDoctor(c echo.Context) error {
 		otp.DoctorEmail = doctor.Email
 		if err:= email.SendEmail("test",doctor.Email,otp.OTP); err!= nil{
 			return c.JSON(500, map[string]interface{}{
-				"message": "failed to send email",
-				"error": err.Error(),
+				"message": "Failed to send OTP",
 			})
 		}
 		err := config.DB.Where("doctor_email=?", doctor.Email).Save(&otp).Error
 		if err != nil{
 			return c.JSON(500, map[string]interface{}{
-				"message": "failed to create otp",
-				"error": err.Error(),
+				"message": "Failed to save doctor email",
 			})	
 		}
 		return c.JSON(200, map[string]interface{}{
@@ -36,14 +34,12 @@ func CreateDoctor(c echo.Context) error {
 	}else{
 		if err:=config.DB.Where("doctor_email = ? AND otp = ?", doctor.Email, tempOTP).First(&otp).Error; err != nil{
 			return c.JSON(500, map[string]interface{}{
-				"message": "failed to create doctor",
-				"error": err.Error(),
+				"message": "Wrong OTP",
 			})
 		}
 		if err := config.DB.Create(&doctor).Error; err != nil {
 			return c.JSON(500, map[string]interface{}{
-				"message": "failed to create doctor",
-				"error": err.Error(),
+				"message": "Failed to  create doctor",
 			})
 		}
 	}

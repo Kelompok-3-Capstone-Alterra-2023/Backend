@@ -33,5 +33,5 @@ func SendEmail(toName, toEmail , otp string) error {
 		Subject: "Account Creation",
 		TextContent:    fmt.Sprintf("OTP: %s", otp),
 	}
-	return message.Send("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")
+	return message.Send("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")
 }
