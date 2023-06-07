@@ -27,8 +27,10 @@ func UploadFileS3(name string, file *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 
+	awsRegion := aws.String(os.Getenv("AWS_REGION"))
+
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(os.Getenv("AWS_REGION")),
+		Region: awsRegion,
 	})
 	if err != nil {
 		return "", err
@@ -37,7 +39,7 @@ func UploadFileS3(name string, file *multipart.FileHeader) (string, error) {
 	s3Client := s3.New(sess)
 	// change the path
 	s3Key := fmt.Sprintf("uploads/thumbnail/%s", file.Filename)
-	s3Bucket := "capstone-prevent"
+	s3Bucket := os.Getenv("AWS_S3_BUCKET")
 	objectInput := &s3.PutObjectInput{
 		Bucket: aws.String(s3Bucket),
 		Key:    aws.String(s3Key),
@@ -48,7 +50,8 @@ func UploadFileS3(name string, file *multipart.FileHeader) (string, error) {
 		return "", err
 	}
 
-	imagePath := s3Bucket + "/" + s3Key
+	imageURL := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", s3Bucket, *awsRegion, s3Key)
+	fmt.Println("i", imageURL)
 
-	return imagePath, nil
+	return imageURL, nil
 }

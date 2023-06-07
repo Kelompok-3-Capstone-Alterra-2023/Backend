@@ -1,3 +1,4 @@
+// need AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, and AWS_S3_BUCKET as env variable
 package controller
 
 import (
@@ -55,9 +56,8 @@ func (controller *ArticleAdminController) GetDetailArticle(c echo.Context) error
 
 	date := monday.Format(article.UpdatedAt, "02 January 2006", monday.LocaleIdID)
 	articleResponse := model.DetailArticleResponse{
-		ID:         article.ID,
-		Updated_At: date,
-		// ##########################################################################################################
+		ID:          article.ID,
+		Updated_At:  date,
 		Doctor_Name: article.Doctor.FullName,
 		Title:       article.Title,
 		Thumbnail:   article.Thumbnail,
@@ -125,7 +125,6 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 
 	image, err := c.FormFile("thumbnail")
 	if image != nil {
-		// need AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION as env variable
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"message": err.Error(),
@@ -154,21 +153,8 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 		})
 	}
 
-	// date := monday.Format(article.UpdatedAt, "02 January 2006", monday.LocaleIdID)
-	// articleResponse := model.DetailArticleResponse{
-	// 	ID:         article.ID,
-	// 	Updated_At: date,
-	// 	// #######################################################################################################################
-	// 	Doctor_Name: article.Doctor.FullName,
-	// 	Title:       article.Title,
-	// 	Thumbnail:   article.Thumbnail,
-	// 	Content:     article.Content,
-	// 	Category:    article.Category,
-	// }
-
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success add article",
-		// "data":    articleResponse,
 	})
 }
 
@@ -364,9 +350,8 @@ func (controller *ArticleUserController) GetDetailArticle(c echo.Context) error 
 	est_read := math.Round(float64(total_word) / 200.0)
 	date := monday.Format(article.UpdatedAt, "02 January 2006", monday.LocaleIdID)
 	articleResponse := model.DetailArticleResponse{
-		ID:         article.ID,
-		Updated_At: date,
-		// #########################################################################################################
+		ID:          article.ID,
+		Updated_At:  date,
 		Doctor_Name: article.Doctor.FullName,
 		Title:       article.Title,
 		Thumbnail:   article.Thumbnail,
