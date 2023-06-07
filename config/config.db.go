@@ -2,18 +2,15 @@ package config
 
 import (
 
+	"capstone/model"
 	"fmt"
 	"log"
 	"os"
 
-	"capstone/model"
-
 	"github.com/joho/godotenv"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
-
 
 var (
 	DB  *gorm.DB
@@ -45,6 +42,6 @@ func Open() error {
 }
 
 func InitMigrate(){
-	DB.AutoMigrate(model.Doctor{})
+  DB.AutoMigrate(model.Doctor{},model.Article{},model.User{})
+	DB.AutoMigrate(model.OTP{})
 }
-
