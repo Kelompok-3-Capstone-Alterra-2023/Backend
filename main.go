@@ -1,18 +1,28 @@
 package main
 
 import (
+	"capstone/config"
+
+	"capstone/controller"
+	"capstone/middleware"
+	"capstone/model"
 	"net/http"
+  "capstone/route"
 
 	"github.com/labstack/echo/v4"
 )
 
+
+	
+
+
 func main() {
-	e := echo.New()
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
-	e.GET("/hello", func(c echo.Context) error {
-		return c.String(http.StatusOK, "try pipeline")
-	})
+
+	config.Open()
+
+	e:=route.New()
+	
+
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
