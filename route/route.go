@@ -1,14 +1,17 @@
 package route
 
 import (
+
 	"capstone/constant"
 	"capstone/controller"
 	m "capstone/middleware"
 
 	jwtMid "github.com/labstack/echo-jwt"
 
+
 	"github.com/labstack/echo/v4"
 )
+
 
 func New() *echo.Echo {
 	e := echo.New()
@@ -23,6 +26,8 @@ func New() *echo.Echo {
 	articleDoctorController := controller.ArticleDoctorController{}
 	eDoc := e.Group("doctor")
 	eDoc.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+  eDoc.POST("/register", controller.CreateDoctor)
+	eDoc.POST("/login", controller.LoginDoctor)
 	eDoc.POST("/articles", articleDoctorController.AddArticle)
 	eDoc.PUT("/articles/:id", articleDoctorController.UpdateArticle)
 	eDoc.DELETE("/articles/:id", articleDoctorController.DeleteArticle)
@@ -36,6 +41,7 @@ func New() *echo.Echo {
 	eAdm.PUT("/articles/:id", articleAdminController.AcceptArticle)
 	eAdm.DELETE("/articles/:id", articleAdminController.DeleteArticle)
 	eAdm.GET("/articles/search", articleAdminController.SearchArticles)
-
+  
 	return e
 }
+

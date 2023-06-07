@@ -6,7 +6,11 @@ import (
 )
 
 func main() {
-	config.InitDB()
-	e := route.New()
+
+	config.Open()
+
+	e:=route.New()
+	
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
