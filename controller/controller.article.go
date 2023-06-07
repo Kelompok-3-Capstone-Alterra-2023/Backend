@@ -142,8 +142,8 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 
 	// get doctor id from jwt token
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	doctorID, err := middleware.CheckTokenId(token)
-	article.Doctor_ID = uint(doctorID.(float64))
+	doctorID := middleware.ExtractDocterIdToken(token)
+	article.Doctor_ID = uint(doctorID)
 	article.Thumbnail = imageURI
 	article.Status = "ditinjau"
 	err = database.SaveArticle(&article)
@@ -186,8 +186,8 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 
 	// get doctor id from jwt token
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	doctorID, err := middleware.CheckTokenId(token)
-	if article.Doctor_ID == uint(doctorID.(float64)) {
+	doctorID := middleware.ExtractDocterIdToken(token)
+	if article.Doctor_ID == uint(doctorID) {
 		articleID, _ := strconv.Atoi(c.Param("id"))
 		updatedArticle.ID = uint(articleID)
 		updatedArticle.Thumbnail = imageURI
@@ -222,13 +222,9 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 
 func (controller *ArticleDoctorController) DeleteArticle(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	doctorID, err := middleware.CheckTokenId(token)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": err.Error(),
-		})
-	}
-	doctor_id := uint(doctorID.(float64))
+	doctorID := middleware.ExtractDocterIdToken(token)
+	
+	doctor_id := uint(doctorID)
 	article, err := database.GetArticleById(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
@@ -257,13 +253,9 @@ func (controller *ArticleDoctorController) DeleteArticle(c echo.Context) error {
 func (controller *ArticleDoctorController) GetArticles(c echo.Context) error {
 	// change with doctor id from jwt
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	doctorID, err := middleware.CheckTokenId(token)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": err.Error(),
-		})
-	}
-	doctor_id := fmt.Sprintf("%f", doctorID.(float64))
+	doctorID := middleware.ExtractDocterIdToken(token)
+	
+	doctor_id := fmt.Sprintf("%f", doctorID)
 	articlesDoctor, err := database.DoctorGetAllArticles(doctor_id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
@@ -280,13 +272,9 @@ func (controller *ArticleDoctorController) GetArticles(c echo.Context) error {
 
 func (controller *ArticleDoctorController) SearchArticles(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	doctorID, err := middleware.CheckTokenId(token)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": err.Error(),
-		})
-	}
-	doctor_id := fmt.Sprintf("%f", doctorID.(float64))
+	doctorID := middleware.ExtractDocterIdToken(token)
+	
+	doctor_id := fmt.Sprintf("%f", doctorID)
 	articles, err := database.DoctorSearchArticles(doctor_id, c.QueryParam("keyword"))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
