@@ -198,34 +198,40 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 
 	}
 
-	articleID, _ := strconv.Atoi(c.Param("id"))
-	updatedArticle.ID = uint(articleID)
 	// get doctor id from jwt token
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 	doctorID, err := middleware.CheckTokenId(token)
-	updatedArticle.Doctor_ID = uint(doctorID.(float64))
-	updatedArticle.Thumbnail = imageURI
+	if article.Doctor_ID == uint(doctorID.(float64)) {
+		articleID, _ := strconv.Atoi(c.Param("id"))
+		updatedArticle.ID = uint(articleID)
+		updatedArticle.Thumbnail = imageURI
 
-	err = database.UpdateArticle(&updatedArticle)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": err.Error(),
+		err = database.UpdateArticle(&updatedArticle)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+
+		articleResponse := model.ArticleResponse{
+			ID:        updatedArticle.ID,
+			Doctor_ID: uint(doctorID.(float64)),
+			Title:     updatedArticle.Title,
+			Thumbnail: updatedArticle.Thumbnail,
+			Content:   updatedArticle.Content,
+			Category:  updatedArticle.Category,
+		}
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success update article",
+			"data":    articleResponse,
 		})
-	}
 
-	articleResponse := model.ArticleResponse{
-		ID:        updatedArticle.ID,
-		Doctor_ID: updatedArticle.Doctor_ID,
-		Title:     updatedArticle.Title,
-		Thumbnail: updatedArticle.Thumbnail,
-		Content:   updatedArticle.Content,
-		Category:  updatedArticle.Category,
 	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success update article",
-		"data":    articleResponse,
+	return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+		"message": "unauthorized",
 	})
+
 }
 
 func (controller *ArticleDoctorController) DeleteArticle(c echo.Context) error {
