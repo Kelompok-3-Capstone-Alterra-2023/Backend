@@ -18,12 +18,15 @@ func New() *echo.Echo {
 	m.LogMiddleware(e)
 
 	articleUserController := controller.ArticleUserController{}
+  doctorUserController := controller.DoctorUserController{}
 	eUser := e.Group("user")
 	eUser.GET("/articles", articleUserController.GetArticles)
 	eUser.GET("/articles/:id", articleUserController.GetDetailArticle)
 	eUser.GET("/articles/search", articleUserController.SearchArticles)
+  eUser.GET("/doctors", doctorUserController.GetDoctors)
 
 	articleDoctorController := controller.ArticleDoctorController{}
+  doctorDoctorController := controller.DoctorDoctorController{}
 	eDoc := e.Group("doctor")
 	eDoc.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
   eDoc.POST("/register", controller.CreateDoctor)
@@ -33,15 +36,20 @@ func New() *echo.Echo {
 	eDoc.DELETE("/articles/:id", articleDoctorController.DeleteArticle)
 	eDoc.GET("/articles", articleDoctorController.GetArticles)
 	eDoc.GET("/articles/search", articleDoctorController.SearchArticles)
+  eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
 
 	articleAdminController := controller.ArticleAdminController{}
+  doctorAdminController := controller.DoctorAdminController{}
 	eAdm := e.Group("admin")
 	eAdm.GET("/articles", articleAdminController.GetArticles)
 	eAdm.GET("/articles/:id", articleAdminController.GetDetailArticle)
 	eAdm.PUT("/articles/:id", articleAdminController.AcceptArticle)
 	eAdm.DELETE("/articles/:id", articleAdminController.DeleteArticle)
 	eAdm.GET("/articles/search", articleAdminController.SearchArticles)
+  eAdm.GET("/doctors", doctorAdminController.GetDoctors)
+	eAdm.GET("/doctor/:id", doctorAdminController.GetDoctor)
+	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
+	eAdm.DELETE("/doctor/:id", doctorAdminController.DeleteDoctor)
   
 	return e
 }
-

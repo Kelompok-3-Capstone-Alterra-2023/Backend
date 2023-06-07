@@ -1,40 +1,50 @@
 package config
 
 import (
-	"capstone/model"
+
 	"fmt"
+	"log"
+	"os"
+
+	"capstone/model"
+
+	"github.com/joho/godotenv"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
 
-func InitDB() {
-	DB_USER := "root"
-	DB_PASS := ""
-	DB_HOST := "127.0.0.1"
-	DB_PORT := "3306"
-	DB_NAME := "capstone"
+var (
+	DB  *gorm.DB
+	err error
+)
 
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		DB_USER,
-		DB_PASS,
-		DB_HOST,
-		DB_PORT,
-		DB_NAME,
-	)
+func Open() error {
+	//load env file
+	errenv := godotenv.Load()
 
-	var err error
-	DB, err = gorm.Open(mysql.Open(connectionString), &gorm.Config{})
-
-	if err != nil {
-		panic(err)
+	if errenv != nil {
+		log.Fatal("error load env file")
 	}
 
-	initialMigration()
+	//connect db
+	dbUsername := os.Getenv("DBUSERNAME")
+	dbPassword := os.Getenv("DBPASSWORD")
+	dbHost := os.Getenv("DBHOST")
+	dbName := os.Getenv("DBNAME")
+	dbPort := os.Getenv("DBPORT")
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUsername, dbPassword, dbHost, dbPort, dbName)
+	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return err
+	}
+	InitMigrate()
+	return nil
 }
 
-func initialMigration() {
-	DB.AutoMigrate(&model.Article{}, &model.Doctor{})
+func InitMigrate(){
+	DB.AutoMigrate(model.Doctor{})
 }
+

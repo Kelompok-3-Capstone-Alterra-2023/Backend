@@ -2,6 +2,7 @@ package middleware
 
 import (
 
+
 	"capstone/model"
 	"time"
 
@@ -74,6 +75,7 @@ func CreateJWT(user model.User) interface{} {
 
 	return token
 }
+
 
 func CreateDoctorJWT(doctorID uint) (string, error){
 	claims := jwt.MapClaims{}
