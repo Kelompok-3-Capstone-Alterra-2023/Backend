@@ -2,6 +2,7 @@ package controller
 
 import (
 	"capstone/config"
+	"capstone/middleware"
 	"capstone/model"
 	"database/sql"
 	"encoding/json"
@@ -9,24 +10,11 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
-
-type Jwtcustomclaims struct {
-	ID            int    `gorm:"primary_key;not null"`
-	Email         string `json:"email" form:"email" gorm:"type:varchar(255)unique;not null"`
-	Username      string `json:"username" form:"username" gorm:"type:varchar(255)unique;not null"`
-	Password      string `json:"password" form:"password" gorm:"not null"`
-	Telp          string `json:"telpon" form:"telpon" gorm:"varchar(20)"`
-	Alamat        string `json:"alamat" form:"alamat" gorm:"type:text"`
-	Gender        string `json:"gender" form:"gender" gorm:"type:varchar(2)"`
-	Status_Online bool   `json:"status_online" form:"status_online" gorm:"type:boolean"`
-	jwt.RegisteredClaims
-}
 
 func RegisterUser(c echo.Context) error {
 	var user model.User
@@ -86,40 +74,6 @@ func RegisterUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, "success create user")
 }
 
-func createJWT(user model.User) interface{} {
-	id := user.ID
-	email := user.Email
-	username := user.Username
-	password := user.Password
-	telp := user.Telp
-	alamat := user.Alamat
-	gender := user.Gender
-	online := user.Status_Online
-
-	claims := &Jwtcustomclaims{
-		id,
-		email,
-		username,
-		password,
-		telp,
-		alamat,
-		gender,
-		online,
-		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
-		},
-	}
-
-	temp := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, err := temp.SignedString([]byte("secret"))
-
-	if err != nil {
-		return err.Error()
-	}
-
-	return token
-}
-
 func LoginUser(c echo.Context) error {
 	var user model.User
 	json_map := make(map[string]interface{})
@@ -143,7 +97,7 @@ func LoginUser(c echo.Context) error {
 			"message": "wrong password",
 		})
 	}
-	token := createJWT(user)
+	token := middleware.CreateJWT(user)
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success login",
 		"token":   token,
