@@ -3,16 +3,23 @@ module capstone
 go 1.20
 
 require (
+
+	github.com/go-sql-driver/mysql v1.7.1
+	github.com/golang-jwt/jwt/v5 v5.0.0
+	github.com/joho/godotenv v1.5.1
+	github.com/labstack/echo-jwt/v4 v4.2.0
+	github.com/labstack/echo/v4 v4.10.2
+
 	github.com/CyCoreSystems/sendinblue v0.1.2
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/joho/godotenv v1.5.1
-	github.com/labstack/echo/v4 v4.10.2
 	golang.org/x/text v0.7.0
+
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/gorm v1.25.1
 )
 
 require (
+
 
 	github.com/aws/aws-sdk-go v1.44.274 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

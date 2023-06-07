@@ -2,8 +2,19 @@ package main
 
 import (
 	"capstone/config"
-	"capstone/route"
+
+	"capstone/controller"
+	"capstone/middleware"
+	"capstone/model"
+	"net/http"
+  "capstone/route"
+
+	"github.com/labstack/echo/v4"
 )
+
+
+	
+
 
 func main() {
 
@@ -11,6 +22,7 @@ func main() {
 
 	e:=route.New()
 	
+
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
