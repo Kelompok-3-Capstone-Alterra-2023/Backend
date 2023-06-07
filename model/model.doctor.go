@@ -15,4 +15,6 @@ type Doctor struct {
 	PracticeAddress string  `gorm:"not null" json:"practice_address" form:"practice_address"`
 	Price float64  
 	Balance float64 
+	Date_of_Entry time.Time `json:"date_of_entry" form:"date_of_entry" gorm:"type:date"`
+	Date_of_Out time.Time `json:"date_of_out" form:"date_of_out" gorm:"type:date"`
 }
