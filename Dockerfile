@@ -12,6 +12,8 @@ COPY go.sum ./
 
 # download Go modules and dependencies
 RUN go mod download
+RUN go mod tidy
+RUN go mod vendor
 
 # copy directory files i.e all files ending with .go
 COPY . ./
