@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -148,22 +147,17 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 func CreateDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	var otp model.OTP
-	c.Bind(&doctor)
+	c.Bind(&otp)
 
-	json_map := make(map[string]interface{})
-	json.NewDecoder(c.Request().Body).Decode(&json_map)
-
-	tempOTP := json_map["otp"]
-
-	if tempOTP == "" {
+	if otp.OTP == "" {
 		otp.OTP = email.GenerateOTP()
-		otp.DoctorEmail = doctor.Email
-		if err := email.SendEmail("test", doctor.Email, otp.OTP); err != nil {
+		if err := email.SendEmail("test", otp.Email, otp.OTP); err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "Failed to send OTP",
+				"email":   otp.Email,	
 			})
 		}
-		err := config.DB.Where("doctor_email=?", doctor.Email).Save(&otp).Error
+		err := config.DB.Where("email=?", otp.Email).Save(&otp).Error
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "Failed to save doctor email",
@@ -173,11 +167,18 @@ func CreateDoctor(c echo.Context) error {
 			"message": "Please check your email",
 		})
 	} else {
-		if err := config.DB.Where("doctor_email = ? AND otp = ?", doctor.Email, tempOTP).First(&otp).Error; err != nil {
+		if err := config.DB.Where("email= ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "Wrong OTP",
 			})
 		}
+		doctor.Email = otp.Email
+		doctor.Password = otp.Password
+		doctor.Fullname	 = otp.Fullname
+		doctor.Displayname = otp.Displayname
+		doctor.Alumnus = otp.Alumnus
+		doctor.Workplace = otp.Workplace
+		doctor.PracticeAddress = otp.PracticeAddress
 		if err := config.DB.Create(&doctor).Error; err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "Failed to  create doctor",

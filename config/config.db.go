@@ -1,7 +1,6 @@
 package config
 
 import (
-
 	"capstone/model"
 	"fmt"
 	"log"
@@ -42,6 +41,8 @@ func Open() error {
 }
 
 func InitMigrate(){
-  DB.AutoMigrate(model.Doctor{},model.Article{},model.User{})
+  	DB.AutoMigrate(model.Doctor{},)
 	DB.AutoMigrate(model.OTP{})
+	DB.AutoMigrate(model.Article{})
+	DB.AutoMigrate(model.User{})
 }
