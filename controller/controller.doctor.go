@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -148,7 +149,12 @@ func CreateDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	var otp model.OTP
 	c.Bind(&doctor)
-	tempOTP := c.FormValue("otp")
+
+	json_map := make(map[string]interface{})
+	json.NewDecoder(c.Request().Body).Decode(&json_map)
+
+	tempOTP := json_map["otp"]
+
 	if tempOTP == "" {
 		otp.OTP = email.GenerateOTP()
 		otp.DoctorEmail = doctor.Email
