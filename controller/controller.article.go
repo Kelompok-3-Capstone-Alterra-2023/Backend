@@ -58,7 +58,7 @@ func (controller *ArticleAdminController) GetDetailArticle(c echo.Context) error
 	articleResponse := model.DetailArticleResponse{
 		ID:          article.ID,
 		Updated_At:  date,
-		Doctor_Name: article.Doctor.FullName,
+		Doctor_Name: article.Doctor.Fullname,
 		Title:       article.Title,
 		Thumbnail:   article.Thumbnail,
 		Content:     article.Content,
@@ -201,7 +201,7 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 
 		articleResponse := model.ArticleResponse{
 			ID:        updatedArticle.ID,
-			Doctor_ID: uint(doctorID.(float64)),
+			Doctor_ID: uint(doctorID),
 			Title:     updatedArticle.Title,
 			Thumbnail: updatedArticle.Thumbnail,
 			Content:   updatedArticle.Content,
@@ -223,7 +223,7 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 func (controller *ArticleDoctorController) DeleteArticle(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 	doctorID := middleware.ExtractDocterIdToken(token)
-	
+
 	doctor_id := uint(doctorID)
 	article, err := database.GetArticleById(c.Param("id"))
 	if err != nil {
@@ -254,7 +254,7 @@ func (controller *ArticleDoctorController) GetArticles(c echo.Context) error {
 	// change with doctor id from jwt
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 	doctorID := middleware.ExtractDocterIdToken(token)
-	
+
 	doctor_id := fmt.Sprintf("%f", doctorID)
 	articlesDoctor, err := database.DoctorGetAllArticles(doctor_id)
 	if err != nil {
@@ -273,7 +273,7 @@ func (controller *ArticleDoctorController) GetArticles(c echo.Context) error {
 func (controller *ArticleDoctorController) SearchArticles(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 	doctorID := middleware.ExtractDocterIdToken(token)
-	
+
 	doctor_id := fmt.Sprintf("%f", doctorID)
 	articles, err := database.DoctorSearchArticles(doctor_id, c.QueryParam("keyword"))
 	if err != nil {
@@ -340,7 +340,7 @@ func (controller *ArticleUserController) GetDetailArticle(c echo.Context) error 
 	articleResponse := model.DetailArticleResponse{
 		ID:          article.ID,
 		Updated_At:  date,
-		Doctor_Name: article.Doctor.FullName,
+		Doctor_Name: article.Doctor.Fullname,
 		Title:       article.Title,
 		Thumbnail:   article.Thumbnail,
 		Content:     article.Content,
