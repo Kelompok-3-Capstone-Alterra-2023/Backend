@@ -2,106 +2,78 @@ package controller
 
 import (
 	"capstone/config"
+	"capstone/lib/email"
 	"capstone/middleware"
 	"capstone/model"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
 func RegisterUser(c echo.Context) error {
 	var user model.User
+	var otp model.UserOTP
 
-	json_map := make(map[string]interface{})
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
+	c.Bind(&otp)
 
-	if json_map["email"] == nil || json_map["email"] == "" {
-		return c.JSON(http.StatusBadRequest, "email cant empty")
-	}
-
-	if json_map["username"] == nil || json_map["username"] == "" {
-		return c.JSON(http.StatusBadRequest, "username cant empty")
-	}
-
-	status := fmt.Sprintf("%v", json_map["status_online"])
-	var online bool
-	if status == "online" {
-		online = true
-	} else {
-		online = false
-	}
-
-	user = model.User{
-		Email:         fmt.Sprintf("%v", json_map["email"]),
-		Username:      fmt.Sprintf("%v", json_map["username"]),
-		Password:      fmt.Sprintf("%v", json_map["password"]),
-		Telp:          fmt.Sprintf("%v", json_map["telpon"]),
-		Alamat:        fmt.Sprintf("%v", json_map["alamat"]),
-		Gender:        fmt.Sprintf("%v", json_map["gender"]),
-		Status_Online: online,
-	}
-
-	result := config.DB.Create(&user)
-	if result.RowsAffected < 1 {
-		//check duplicate username or email
-		var mysqlerr *mysql.MySQLError
-		var duplicate string
-		errors.As(result.Error, &mysqlerr)
-		if strings.Contains(mysqlerr.Message, "email") {
-			duplicate = "duplicate email"
-		} else if strings.Contains(mysqlerr.Message, "username") {
-			duplicate = "duplicate username"
+	if otp.OTP == "" {
+		otp.OTP = email.GenerateOTP()
+		if err:=email.SendEmail(otp.Username ,otp.Email, otp.OTP); err!=nil{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to send email",
+			})
 		}
+		if err:=config.DB.Where("email=?", otp.Email).Save(&otp).Error; err!=nil{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to save email",
+			})
+		}
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "Please check your email",
+		})
+	}else{
+		if err:=config.DB.Where("email = ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err!=nil{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "OTP Wrong",
+			})
+		}
+		user.Email = otp.Email
+		user.Username = otp.Username
+		user.Password = otp.Password
+		user.Gender = otp.Gender
+		user.Telp = otp.Telp
+		user.Status_Online = otp.Status_Online
 
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": "error when save data",
-			"error":   duplicate,
+		if err:=config.DB.Save(&user).Error; err!=nil{
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to save password",
+			})
+		}
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success register",
 		})
 	}
-
-	return c.JSON(http.StatusOK, "success create user")
 }
 
 func LoginUser(c echo.Context) error {
 	var user model.User
-	json_map := make(map[string]interface{})
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
 
-	if err != nil {
+	c.Bind(&user)
+
+	if err := config.DB.Where("email = ? AND password = ?", user.Email, user.Password).First(&user).Error; err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": err,
+			"message": "email or password wrong",
+		})}
+	
+		token := middleware.CreateJWT(user)
+		
+		return c.JSON(200, map[string]interface{}{
+			"message": "success login",
+			"token":   token,
 		})
-	}
-
-	email := fmt.Sprintf("%v", json_map["email"])
-	password := fmt.Sprintf("%v", json_map["password"])
-
-	if err := config.DB.Where("email = @email", sql.Named("email", email)).First(&user).Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	if user.Password != password {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "wrong password",
-		})
-	}
-	token := middleware.CreateJWT(user)
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success login",
-		"token":   token,
-	})
 }
 
 func GetUser(c echo.Context) error {

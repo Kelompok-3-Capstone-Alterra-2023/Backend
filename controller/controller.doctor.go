@@ -126,27 +126,9 @@ func (d *DoctorDoctorController) GetDoctors(c echo.Context) error {
 	})
 }
 
-// for user
-type DoctorUserController struct{}
-
-// get all doctors
-func (u *DoctorUserController) GetDoctors(c echo.Context) error {
-	var doctors []model.Doctor
-
-	config.DB.Find(&doctors)
-
-	if err := config.DB.Find(&doctors).Error; err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success get all doctors",
-		"doctors": doctors,
-	})
-}
-
 func CreateDoctor(c echo.Context) error {
 	var doctor model.Doctor
-	var otp model.OTP
+	var otp model.DoctorOTP
 	c.Bind(&otp)
 
 	if otp.OTP == "" {
@@ -212,3 +194,23 @@ func LoginDoctor(c echo.Context) error {
 		"token":   token,
 	})
 }
+
+
+// for user
+type DoctorUserController struct{}
+
+// get all doctors
+func (u *DoctorUserController) GetDoctors(c echo.Context) error {
+	var doctors []model.Doctor
+
+	config.DB.Find(&doctors)
+
+	if err := config.DB.Find(&doctors).Error; err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get all doctors",
+		"doctors": doctors,
+	})
+}
+
