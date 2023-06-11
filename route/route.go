@@ -24,15 +24,16 @@ func New() *echo.Echo {
 	articleUserController := controller.ArticleUserController{}
 	doctorUserController := controller.DoctorUserController{}
 	eUser := e.Group("user")
+	eUser.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 	eUser.GET("/articles", articleUserController.GetArticles)
 	eUser.GET("/articles/:id", articleUserController.GetDetailArticle)
 	eUser.GET("/articles/search", articleUserController.SearchArticles)
 	eUser.GET("/doctors", doctorUserController.GetDoctors)
 	eUser.POST("/register", controller.RegisterUser)
 	eUser.POST("/login", controller.LoginUser)
-	eUser.GET("/", controller.GetUser, m.MiddlewareJWT)
-	eUser.DELETE("/", controller.DeleteUser, m.MiddlewareJWT)
-	eUser.PUT("/", controller.UpdateUser, m.MiddlewareJWT)
+	eUser.GET("/", controller.GetUser,)
+	eUser.DELETE("/", controller.DeleteUser)
+	eUser.PUT("/", controller.UpdateUser)
 
 	articleDoctorController := controller.ArticleDoctorController{}
 	doctorDoctorController := controller.DoctorDoctorController{}
