@@ -21,12 +21,12 @@ func RegisterUser(c echo.Context) error {
 
 	if otp.OTP == "" {
 		otp.OTP = email.GenerateOTP()
-		if err:=email.SendEmail(otp.Username ,otp.Email, otp.OTP); err!=nil{
+		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
 			})
 		}
-		if err:=config.DB.Where("email=?", otp.Email).Save(&otp).Error; err!=nil{
+		if err := config.DB.Where("email=?", otp.Email).Save(&otp).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save email",
 			})
@@ -34,8 +34,8 @@ func RegisterUser(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"message": "Please check your email",
 		})
-	}else{
-		if err:=config.DB.Where("email = ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err!=nil{
+	} else {
+		if err := config.DB.Where("email = ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "OTP Wrong",
 			})
@@ -47,7 +47,7 @@ func RegisterUser(c echo.Context) error {
 		user.Telp = otp.Telp
 		user.Status_Online = otp.Status_Online
 
-		if err:=config.DB.Save(&user).Error; err!=nil{
+		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
 			})
@@ -66,14 +66,15 @@ func LoginUser(c echo.Context) error {
 	if err := config.DB.Where("email = ? AND password = ?", user.Email, user.Password).First(&user).Error; err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "email or password wrong",
-		})}
-	
-		token := middleware.CreateJWT(user)
-		
-		return c.JSON(200, map[string]interface{}{
-			"message": "success login",
-			"token":   token,
 		})
+	}
+
+	token := middleware.CreateJWT(user)
+
+	return c.JSON(200, map[string]interface{}{
+		"message": "success login",
+		"token":   token,
+	})
 }
 
 func GetUser(c echo.Context) error {
@@ -155,4 +156,87 @@ func UpdateUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "success update data")
+}
+
+func AddDoctorFavorite(c echo.Context) error {
+	token := c.Get("user").(*jwt.Token)
+	claims := token.Claims.(jwt.MapClaims)
+
+	var user model.User
+	var doctor model.Doctor
+	config.DB.Where("id = ?", claims["ID"]).Find(&user)
+
+	json_map := make(map[string]interface{})
+
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
+	}
+
+	config.DB.First(&doctor, json_map["doctorID"])
+
+	if doctor.Email == "" {
+		return c.JSON(http.StatusBadRequest, "cant find doctor")
+	}
+
+	config.DB.Model(&model.User{}).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
+
+	return c.JSON(http.StatusOK, "success add doctor favorite")
+}
+
+func DeleteDoctorFavorite(c echo.Context) error {
+	token := c.Get("user").(*jwt.Token)
+	claims := token.Claims.(jwt.MapClaims)
+
+	var user model.User
+	var doctor model.Doctor
+	config.DB.Where("id = ?", claims["id"]).Find(&user)
+
+	json_map := make(map[string]interface{})
+
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
+	}
+
+	config.DB.First(&doctor, json_map["doctorID"])
+
+	if doctor.Email == "" {
+		return c.JSON(http.StatusBadRequest, "cant find doctor")
+	}
+
+	count := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+
+	config.DB.Model(&model.User{}).Association("Doctors").Delete(doctor)
+
+	count2 := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+
+	if count <= count2 {
+		return c.JSON(http.StatusInternalServerError, "cant delete doctor favorite")
+	}
+
+	return c.JSON(http.StatusOK, "success delete doctor favorite")
+}
+
+func GetDoctorFav(c echo.Context) error {
+	token := c.Get("user").(*jwt.Token)
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	var user model.User
+
+	config.DB.Where("id = ?", claims["ID"]).First(&user)
+
+	config.DB.Model(&model.User{}).Association("Doctors").Find(&model.Doctor{})
+	count := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"user":  user,
+		"count": count,
+	})
+
 }

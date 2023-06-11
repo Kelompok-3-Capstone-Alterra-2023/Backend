@@ -15,4 +15,5 @@ type Doctor struct {
 	PracticeAddress string `json:"practice_address" form:"practice_address"`
 	Price           float64
 	Balance         float64
+	// Users           []*User ` gorm:"many2many:user_doctors;"`
 }

@@ -26,6 +26,9 @@ func New() *echo.Echo {
 	eUser.GET("/", controller.GetUser, m.MiddlewareJWT)
 	eUser.DELETE("/", controller.DeleteUser, m.MiddlewareJWT)
 	eUser.PUT("/", controller.UpdateUser, m.MiddlewareJWT)
+	eUser.POST("/doctorfav", controller.AddDoctorFavorite, m.MiddlewareJWT)
+	eUser.DELETE("/doctorfav", controller.DeleteDoctorFavorite, m.MiddlewareJWT)
+	eUser.GET("/doctorfav", controller.GetDoctorFav, m.MiddlewareJWT)
 
 	articleDoctorController := controller.ArticleDoctorController{}
 	doctorDoctorController := controller.DoctorDoctorController{}

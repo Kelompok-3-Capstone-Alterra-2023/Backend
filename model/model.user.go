@@ -13,4 +13,6 @@ type User struct {
 	Alamat        string `json:"alamat" form:"alamat" gorm:"type:text"`
 	Gender        string `json:"gender" form:"gender" gorm:"type:varchar(2)"`
 	Status_Online bool   `json:"status_online" form:"status_online" gorm:"type:boolean"`
+	//doctor favorite many to many
+	Doctors []*Doctor ` gorm:"many2many:user_doctors;"`
 }
