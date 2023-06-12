@@ -136,13 +136,14 @@ func CreateDoctor(c echo.Context) error {
 		if err := email.SendEmail("test", otp.Email, otp.OTP); err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "Failed to send OTP",
-				"email":   otp.Email,	
+				"error":   err.Error(),
 			})
 		}
 		err := config.DB.Where("email=?", otp.Email).Save(&otp).Error
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "Failed to save doctor email",
+				"error":   err.Error(),
 			})
 		}
 		return c.JSON(200, map[string]interface{}{
@@ -159,11 +160,12 @@ func CreateDoctor(c echo.Context) error {
 		doctor.Fullname	 = otp.Fullname
 		doctor.Displayname = otp.Displayname
 		doctor.Alumnus = otp.Alumnus
-		doctor.Workplace = otp.Workplace
+		doctor.Work = otp.Work
 		doctor.PracticeAddress = otp.PracticeAddress
 		if err := config.DB.Create(&doctor).Error; err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "Failed to  create doctor",
+				"error":   err.Error(),
 			})
 		}
 	}
