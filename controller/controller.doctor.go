@@ -11,7 +11,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 
-	"capstone/lib/email"
 	"capstone/middleware"
 )
 
@@ -128,50 +127,17 @@ func (d *DoctorDoctorController) GetDoctors(c echo.Context) error {
 
 func CreateDoctor(c echo.Context) error {
 	var doctor model.Doctor
-	var otp model.DoctorOTP
-	c.Bind(&otp)
-
-	if otp.OTP == "" {
-		otp.OTP = email.GenerateOTP()
-		if err := email.SendEmail("test", otp.Email, otp.OTP); err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to send OTP",
-				"error":   err.Error(),
-			})
-		}
-		err := config.DB.Where("email=?", otp.Email).Save(&otp).Error
-		if err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to save doctor email",
-				"error":   err.Error(),
-			})
-		}
-		return c.JSON(200, map[string]interface{}{
-			"message": "Please check your email",
+	c.Bind(&doctor)
+	doctor.Status = "notapproved"
+	if err := config.DB.Create(&doctor).Error; err != nil {
+		return c.JSON(500, map[string]interface{}{
+			"message": "failed to create doctor",
+			"error":   err.Error(),
 		})
-	} else {
-		if err := config.DB.Where("email= ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Wrong OTP",
-			})
-		}
-		doctor.Email = otp.Email
-		doctor.Password = otp.Password
-		doctor.Fullname	 = otp.Fullname
-		doctor.Displayname = otp.Displayname
-		doctor.Alumnus = otp.Alumnus
-		doctor.Work = otp.Work
-		doctor.PracticeAddress = otp.PracticeAddress
-		if err := config.DB.Create(&doctor).Error; err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to  create doctor",
-				"error":   err.Error(),
-			})
-		}
 	}
 	return c.JSON(200, map[string]interface{}{
 		"message": "success create doctor",
-		"data":    doctor,
+		"doctor":  doctor,
 	})
 }
 
