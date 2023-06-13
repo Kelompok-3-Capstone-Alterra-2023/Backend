@@ -40,10 +40,12 @@ func Open() error {
 	return nil
 }
 
-func InitMigrate(){
-  	DB.AutoMigrate(model.Doctor{},)
+func InitMigrate() {
+	DB.AutoMigrate(model.Doctor{})
 	DB.AutoMigrate(model.DoctorOTP{})
 	DB.AutoMigrate(model.Article{})
 	DB.AutoMigrate(model.User{})
 	DB.AutoMigrate(model.UserOTP{})
+	DB.AutoMigrate(model.Recipt{})
+	DB.AutoMigrate(model.Drug{})
 }
