@@ -181,7 +181,7 @@ func AddDoctorFavorite(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "cant find doctor")
 	}
 
-	config.DB.Model(&model.User{}).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
+	config.DB.Model(&user).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
 
 	return c.JSON(http.StatusOK, "success add doctor favorite")
 }
@@ -192,7 +192,7 @@ func DeleteDoctorFavorite(c echo.Context) error {
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", claims["id"]).Find(&user)
+	config.DB.Where("id = ?", claims["ID"]).Find(&user)
 
 	json_map := make(map[string]interface{})
 
@@ -206,17 +206,20 @@ func DeleteDoctorFavorite(c echo.Context) error {
 	config.DB.First(&doctor, json_map["doctorID"])
 
 	if doctor.Email == "" {
-		return c.JSON(http.StatusBadRequest, "cant find doctor")
+		return c.JSON(http.StatusBadRequest, doctor)
 	}
 
-	count := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+	count := config.DB.Model(&user).Association("Doctors").Count()
 
-	config.DB.Model(&model.User{}).Association("Doctors").Delete(doctor)
+	config.DB.Model(&user).Association("Doctors").Delete(&doctor)
 
-	count2 := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+	count2 := config.DB.Model(&user).Association("Doctors").Count()
 
 	if count <= count2 {
-		return c.JSON(http.StatusInternalServerError, "cant delete doctor favorite")
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"count 1": count,
+			"count 2": count2,
+		})
 	}
 
 	return c.JSON(http.StatusOK, "success delete doctor favorite")
@@ -224,19 +227,14 @@ func DeleteDoctorFavorite(c echo.Context) error {
 
 func GetDoctorFav(c echo.Context) error {
 	token := c.Get("user").(*jwt.Token)
-
 	claims := token.Claims.(jwt.MapClaims)
 
 	var user model.User
 
-	config.DB.Where("id = ?", claims["ID"]).First(&user)
-
-	config.DB.Model(&model.User{}).Association("Doctors").Find(&model.Doctor{})
-	count := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+	config.DB.Model(&model.User{}).Where("id = ?", claims["ID"]).Preload("Doctors").Find(&user)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"user":  user,
-		"count": count,
+		"user": user,
 	})
 
 }
