@@ -3,13 +3,11 @@ package controller
 import (
 	"capstone/config"
 	"capstone/lib/email"
-	"capstone/middleware"
+	m "capstone/middleware"
 	"capstone/model"
-	"encoding/json"
-	"fmt"
 	"net/http"
+	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,11 +22,13 @@ func RegisterUser(c echo.Context) error {
 		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
+				"error": err.Error(),
 			})
 		}
 		if err := config.DB.Where("email=?", otp.Email).Save(&otp).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save email",
+				"error": err.Error(),
 			})
 		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -50,6 +50,7 @@ func RegisterUser(c echo.Context) error {
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
+				"error": err.Error(),
 			})
 		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -66,6 +67,13 @@ func LoginUser(c echo.Context) error {
 	if err := config.DB.Where("email = ? AND password = ?", user.Email, user.Password).First(&user).Error; err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "email or password wrong",
+		})}
+	
+		token := m.CreateJWT(user)
+		
+		return c.JSON(200, map[string]interface{}{
+			"message": "success login",
+			"token":   token,
 		})
 	}
 
@@ -78,23 +86,22 @@ func LoginUser(c echo.Context) error {
 }
 
 func GetUser(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-	claims := token.Claims.(jwt.MapClaims)
+	id := int(m.ExtractUserIdToken(token))
 
 	var user model.User
 
-	config.DB.Where("id = ?", claims["ID"]).First(&user)
+	config.DB.Where("id = ?", id).First(&user)
 
 	return c.JSON(http.StatusOK, user)
 }
 
 func DeleteUser(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-	claims := token.Claims.(jwt.MapClaims)
+	id := int(m.ExtractUserIdToken(token))
 
-	id := claims["ID"]
 	result := config.DB.Delete(&model.User{}, id)
 
 	if result.RowsAffected < 1 {
@@ -105,50 +112,14 @@ func DeleteUser(c echo.Context) error {
 }
 
 func UpdateUser(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-	claims := token.Claims.(jwt.MapClaims)
-
-	id := claims["ID"]
-	if id == "" {
-		return c.JSON(http.StatusBadRequest, "cant find data")
-	}
+	id := int(m.ExtractUserIdToken(token))
 
 	var user model.User
 	config.DB.Where("id = ?", id).First(&user)
 
-	json_map := make(map[string]interface{})
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	if json_map["email"] != "" {
-		user.Email = fmt.Sprintf("%v", json_map["email"])
-	}
-
-	if json_map["username"] != "" {
-		user.Username = fmt.Sprintf("%v", json_map["username"])
-	}
-
-	if json_map["password"] != "" {
-		user.Password = fmt.Sprintf("%v", json_map["password"])
-	}
-
-	if json_map["telpon"] != "" {
-		user.Telp = fmt.Sprintf("%v", json_map["telpon"])
-	}
-
-	if json_map["alamat"] != "" {
-		user.Alamat = fmt.Sprintf("%v", json_map["alamat"])
-	}
-
-	if json_map["gender"] != "" {
-		user.Gender = fmt.Sprintf("%v", json_map["gender"])
-	}
-
+	c.Bind(&user)
 	result := config.DB.Where("id = ?", id).Updates(&user)
 
 	if result.RowsAffected < 1 {
