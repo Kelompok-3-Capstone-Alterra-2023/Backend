@@ -136,7 +136,7 @@ func CreateDoctor(c echo.Context) error {
 		if err := email.SendEmail("test", otp.Email, otp.OTP); err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "Failed to send OTP",
-				"email":   otp.Email,	
+				"email":   otp.Email,
 			})
 		}
 		err := config.DB.Where("email=?", otp.Email).Save(&otp).Error
@@ -156,8 +156,8 @@ func CreateDoctor(c echo.Context) error {
 		}
 		doctor.Email = otp.Email
 		doctor.Password = otp.Password
-		doctor.Fullname	 = otp.Fullname
-		doctor.Displayname = otp.Displayname
+		doctor.FullName = otp.Fullname
+		doctor.DisplayName = otp.Displayname
 		doctor.Alumnus = otp.Alumnus
 		doctor.Workplace = otp.Workplace
 		doctor.PracticeAddress = otp.PracticeAddress
@@ -195,7 +195,6 @@ func LoginDoctor(c echo.Context) error {
 	})
 }
 
-
 // for user
 type DoctorUserController struct{}
 
@@ -213,4 +212,3 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 		"doctors": doctors,
 	})
 }
-
