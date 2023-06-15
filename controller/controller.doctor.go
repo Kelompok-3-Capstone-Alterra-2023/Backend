@@ -144,7 +144,7 @@ func CreateDoctor(c echo.Context) error {
 func LoginDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	c.Bind(&doctor)
-	if err := config.DB.Where("email = ? AND password = ?", doctor.Email, doctor.Password).First(&doctor).Error; err != nil {
+	if err := config.DB.Where("email = ? AND password = ? AND status = ?", doctor.Email, doctor.Password, "approved").First(&doctor).Error; err != nil {
 		return c.JSON(500, map[string]interface{}{
 			"message": "failed to login",
 			"error":   err.Error(),
@@ -173,7 +173,7 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 
 	config.DB.Find(&doctors)
 
-	if err := config.DB.Find(&doctors).Error; err != nil {
+	if err := config.DB.Where("status=?", "approved").Find(&doctors).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{

@@ -32,8 +32,8 @@ func New() *echo.Echo {
 	doctorDoctorController := controller.DoctorDoctorController{}
 	eDoc := e.Group("doctor")
 	eDoc.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.POST("/doc/register", controller.CreateDoctor)
-	e.POST("/doc/login", controller.LoginDoctor)
+	e.POST("/doctor/register", controller.CreateDoctor)
+	e.POST("/doctor/login", controller.LoginDoctor)
 	eDoc.POST("/articles", articleDoctorController.AddArticle)
 	eDoc.PUT("/articles/:id", articleDoctorController.UpdateArticle)
 	eDoc.DELETE("/articles/:id", articleDoctorController.DeleteArticle)
