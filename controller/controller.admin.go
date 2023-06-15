@@ -2,63 +2,36 @@ package controller
 
 import (
 	"net/http"
-	"time"
 
 	"capstone/config"
 	"capstone/model"
+	"capstone/middleware"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
 )
 
-type AdminController struct{}
+func LoginAdmin(c echo.Context) error {
+	var admin model.Admin
+	admin.Username = "iamadmin"
+	admin.Password = "password"
 
-func NewAdminController() *AdminController {
-	return &AdminController{}
-}
-
-func (ac *AdminController) LoginAdmin(c echo.Context) error {
-	// Parsing data login dari permintaan
-	login := new(model.LoginRequest)
-	if err := c.Bind(login); err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid request")
+	if err := config.DB.Where("username = ? AND password = ?", admin.Username, admin.Password).First(&admin).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "failed to login",
+			"error":   err.Error(),
+		})
 	}
 
-	// Memeriksa apakah username dan password sesuai
-	if login.Username != "admin" || login.Password != "password" {
-		return echo.ErrUnauthorized
-	}
-
-	// Membuat token JWT
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &JwtClaims{
-		Username: login.Username,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 72).Unix(),
-		},
-	})
-
-	// Menandatangani token dengan secret key dan menghasilkan string token
-	tokenString, err := token.SignedString([]byte("secret"))
+	token, err := middleware.CreateAdminJWT(admin.ID)
 	if err != nil {
-		return echo.ErrInternalServerError
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "failed to login",
+			"error":   err.Error(),
+		})
 	}
 
-	// Mengembalikan token sebagai respons
-	return c.JSON(http.StatusOK, map[string]string{
-		"token": tokenString,
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success login",
+		"token":   token,
 	})
-}
-
-func (ac *AdminController) Index(c echo.Context) error {
-	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*JwtClaims)
-	username := claims.Username
-
-	// Memeriksa apakah pengguna yang diotentikasi adalah admin
-	if username != "admin" {
-		return echo.ErrUnauthorized
-	}
-
-	// Menampilkan pesan sukses
-	return c.String(http.StatusOK, "Halo, admin!")
 }

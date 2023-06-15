@@ -18,6 +18,33 @@ import (
 // for admin
 type DoctorAdminController struct{}
 
+// Handler untuk menyetujui pendaftaran dokter
+func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
+	var doctor model.Doctor
+	c.Bind(&doctor)
+
+	// Cari dokter berdasarkan ID
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid doctor ID")
+	}
+
+	if err := config.DB.First(&doctor, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return echo.NewHTTPError(http.StatusNotFound, "doctor not found")
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve doctor's data")
+	}
+
+	// Jika dokter ditemukan
+	doctor.Status = "approved"
+	if err := config.DB.Save(&doctor).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
+	}
+
+	return c.JSON(http.StatusOK, "doctor registration approved")
+}
+
 // get all doctors
 func (a *DoctorAdminController) GetDoctors(c echo.Context) error {
 	var doctors []model.Doctor
@@ -214,30 +241,4 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 		"message": "success get all doctors",
 		"doctors": doctors,
 	})
-}
-
-// Handler untuk menyetujui pendaftaran dokter
-func approveDoctor(c echo.Context) error {
-	doctorID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.String(http.StatusBadRequest, "ID dokter tidak valid")
-	}
-
-	// Cari dokter berdasarkan ID
-	var foundDoctor *Doctor
-	for _, doctor := range doctors {
-		if doctor.ID == doctorID {
-			foundDoctor = &doctor
-			break
-		}
-	}
-
-	// Jika dokter ditemukan
-	if foundDoctor != nil {
-		// Set status dokter menjadi "Approved"
-		foundDoctor.Status = "Approved"
-		return c.String(http.StatusOK, "Pendaftaran dokter disetujui")
-	}
-
-	return c.String(http.StatusNotFound, "Dokter tidak ditemukan")
 }

@@ -71,6 +71,24 @@ func ExtractDocterIdToken(token string) float64 {
 	return tempToken.Claims.(jwt.MapClaims)["doctorID"].(float64)
 }
 
+func CreateAdminJWT(adminID uint) (string, error) {
+	claims := jwt.MapClaims{}
+	claims["authorized"] = true
+	claims["admin_id"] = adminID
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte("secret"))
+}
+
+func ExtractAdminIdToken(token string) float64 {
+	claims := jwt.MapClaims{}
+	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+		return []byte("secret"), nil
+	},
+	)
+	return tempToken.Claims.(jwt.MapClaims)["adminID"].(float64)
+}
+
 func ExtractUserIdToken(token string) float64 {
 	claims := jwt.MapClaims{}
 	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
