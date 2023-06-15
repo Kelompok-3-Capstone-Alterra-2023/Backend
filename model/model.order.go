@@ -10,7 +10,7 @@ type Order struct {
 	gorm.Model
 	UserID      uint      `json:"user_id" form:"user_id"`
 	DoctorID    uint      `json:"doctor_id" form:"doctor_id"`
-	OrderNumber string    `json:"order_number" form:"order_number"`
+	OrderNumber string    `json:"order_number" form:"order_number" gorm:"unique"`
 	Date        time.Time `json:"date" form:"date"`
 	SnapToken   string    `json:"snap_token" form:"snap_toke"`
 	PaymentURL  string    `json:"payment_url" form:"payment_url"`

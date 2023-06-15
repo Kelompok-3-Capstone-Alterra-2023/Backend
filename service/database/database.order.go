@@ -3,6 +3,7 @@ package database
 import (
 	"capstone/config"
 	"capstone/model"
+	"errors"
 )
 
 func GetDoctorById(id string) (model.Doctor, error) {
@@ -58,4 +59,13 @@ func UpdatePayment(paymentUpdate *model.Notification) error {
 	}
 
 	return nil
+}
+
+func CheckOrderNumber(orderNumber string) error {
+	var order model.Order
+	if err := config.DB.Table("orders").Where("order_number = ?", orderNumber).First(&order).Error; err != nil {
+		return err
+	}
+
+	return errors.New("")
 }

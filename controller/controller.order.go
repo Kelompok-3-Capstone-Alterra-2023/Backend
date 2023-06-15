@@ -1,12 +1,14 @@
 package controller
 
 import (
+	"capstone/middleware"
 	"capstone/model"
 	"capstone/service/database"
 	"capstone/service/midtrans"
 	"capstone/util"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/goodsign/monday"
@@ -47,6 +49,7 @@ func (controller *OrderController) GetDetailDoctor(c echo.Context) error {
 }
 
 func (controller *OrderController) Order(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 	var booking model.Booking
 	var order model.Order
 	if err := c.Bind(&booking); err != nil {
@@ -62,12 +65,21 @@ func (controller *OrderController) Order(c echo.Context) error {
 		})
 	}
 
-	doctorID := strconv.Itoa(int(booking.DoctorID))
+	doctorID := c.Param("id")
+	userID := int(middleware.ExtractUserIdToken(token))
 	doctor, _ := database.GetDoctorById(doctorID)
-	user, _ := database.GetUserById(c.Param("user_id"))
+	user, _ := database.GetUserById(strconv.Itoa(userID))
 
 	totalAmount := booking.Price + booking.ServiceFee
-	orderNumber := util.GenerateRandomOrderNumber()
+	var orderNumber string
+	for {
+		orderNumber = util.GenerateRandomOrderNumber()
+		err := database.CheckOrderNumber(orderNumber)
+		if err.Error() == "record not found" {
+			break
+		}
+	}
+
 	midtransReq := model.MidtransRequest{
 		OrderNumber: orderNumber,
 		Amount:      int64(totalAmount),
@@ -101,7 +113,6 @@ func (controller *OrderController) Order(c echo.Context) error {
 		})
 	}
 
-	userID, _ := strconv.Atoi(c.Param("user_id"))
 	order.UserID = uint(userID)
 	order.DoctorID = booking.DoctorID
 	order.OrderNumber = orderNumber
