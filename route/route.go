@@ -31,19 +31,12 @@ func New() *echo.Echo {
 	eUser.GET("/articles/:id", articleUserController.GetDetailArticle)
 	eUser.GET("/articles/search", articleUserController.SearchArticles)
 	eUser.GET("/doctors", doctorUserController.GetDoctors)
-  //doctorfav
-	eUser.POST("/register", controller.RegisterUser)
-	eUser.POST("/login", controller.LoginUser)
-	eUser.GET("/", controller.GetUser, m.MiddlewareJWT)
-	eUser.DELETE("/", controller.DeleteUser, m.MiddlewareJWT)
-	eUser.PUT("/", controller.UpdateUser, m.MiddlewareJWT)
-	eUser.POST("/doctorfav", controller.AddDoctorFavorite, m.MiddlewareJWT)
-	eUser.DELETE("/doctorfav", controller.DeleteDoctorFavorite, m.MiddlewareJWT)
-	eUser.GET("/doctorfav", controller.GetDoctorFav, m.MiddlewareJWT)
-  //dev
-	eUser.GET("/", controller.GetUser,)
+	eUser.GET("/", controller.GetUser)
 	eUser.DELETE("/", controller.DeleteUser)
 	eUser.PUT("/", controller.UpdateUser)
+	eUser.POST("/doctor/:id/doctorfav", controller.AddDoctorFavorite)
+	eUser.DELETE("/doctor/:id/doctorfav", controller.DeleteDoctorFavorite)
+	eUser.GET("/doctors/doctorfav", controller.GetDoctorFav)
 
 	articleDoctorController := controller.ArticleDoctorController{}
 	doctorDoctorController := controller.DoctorDoctorController{}

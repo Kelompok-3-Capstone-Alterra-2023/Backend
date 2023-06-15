@@ -6,6 +6,7 @@ import (
 	m "capstone/middleware"
 	"capstone/model"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -22,13 +23,13 @@ func RegisterUser(c echo.Context) error {
 		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 		}
 		if err := config.DB.Where("email=?", otp.Email).Save(&otp).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save email",
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -50,7 +51,7 @@ func RegisterUser(c echo.Context) error {
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -67,17 +68,10 @@ func LoginUser(c echo.Context) error {
 	if err := config.DB.Where("email = ? AND password = ?", user.Email, user.Password).First(&user).Error; err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "email or password wrong",
-		})}
-	
-		token := m.CreateJWT(user)
-		
-		return c.JSON(200, map[string]interface{}{
-			"message": "success login",
-			"token":   token,
 		})
 	}
 
-	token := middleware.CreateJWT(user)
+	token := m.CreateJWT(user)
 
 	return c.JSON(200, map[string]interface{}{
 		"message": "success login",
@@ -130,23 +124,17 @@ func UpdateUser(c echo.Context) error {
 }
 
 func AddDoctorFavorite(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
-	claims := token.Claims.(jwt.MapClaims)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+
+	id := int(m.ExtractUserIdToken(token))
+
+	idDoctor, _ := strconv.Atoi(c.Param("id"))
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", claims["ID"]).Find(&user)
+	config.DB.Where("id = ?", id).Find(&user)
 
-	json_map := make(map[string]interface{})
-
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	config.DB.First(&doctor, json_map["doctorID"])
+	config.DB.First(&doctor, idDoctor)
 
 	if doctor.Email == "" {
 		return c.JSON(http.StatusBadRequest, "cant find doctor")
@@ -158,23 +146,17 @@ func AddDoctorFavorite(c echo.Context) error {
 }
 
 func DeleteDoctorFavorite(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
-	claims := token.Claims.(jwt.MapClaims)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+
+	id := int(m.ExtractUserIdToken(token))
+
+	idDoctor, _ := strconv.Atoi(c.Param("id"))
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", claims["ID"]).Find(&user)
+	config.DB.Where("id = ?", id).Find(&user)
 
-	json_map := make(map[string]interface{})
-
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	config.DB.First(&doctor, json_map["doctorID"])
+	config.DB.First(&doctor, idDoctor)
 
 	if doctor.Email == "" {
 		return c.JSON(http.StatusBadRequest, doctor)
@@ -197,12 +179,13 @@ func DeleteDoctorFavorite(c echo.Context) error {
 }
 
 func GetDoctorFav(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
-	claims := token.Claims.(jwt.MapClaims)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+
+	id := int(m.ExtractUserIdToken(token))
 
 	var user model.User
 
-	config.DB.Model(&model.User{}).Where("id = ?", claims["ID"]).Preload("Doctors").Find(&user)
+	config.DB.Model(&model.User{}).Where("id = ?", id).Preload("Doctors").Find(&user)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"user": user,
