@@ -216,3 +216,28 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 	})
 }
 
+// Handler untuk menyetujui pendaftaran dokter
+func approveDoctor(c echo.Context) error {
+	doctorID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.String(http.StatusBadRequest, "ID dokter tidak valid")
+	}
+
+	// Cari dokter berdasarkan ID
+	var foundDoctor *Doctor
+	for _, doctor := range doctors {
+		if doctor.ID == doctorID {
+			foundDoctor = &doctor
+			break
+		}
+	}
+
+	// Jika dokter ditemukan
+	if foundDoctor != nil {
+		// Set status dokter menjadi "Approved"
+		foundDoctor.Status = "Approved"
+		return c.String(http.StatusOK, "Pendaftaran dokter disetujui")
+	}
+
+	return c.String(http.StatusNotFound, "Dokter tidak ditemukan")
+}
