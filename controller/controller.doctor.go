@@ -13,7 +13,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 
-	"capstone/lib/email"
 	"capstone/middleware"
 )
 
@@ -157,55 +156,24 @@ func (d *DoctorDoctorController) GetDoctors(c echo.Context) error {
 
 func CreateDoctor(c echo.Context) error {
 	var doctor model.Doctor
-	var otp model.DoctorOTP
-	c.Bind(&otp)
-
-	if otp.OTP == "" {
-		otp.OTP = email.GenerateOTP()
-		if err := email.SendEmail("test", otp.Email, otp.OTP); err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to send OTP",
-				"email":   otp.Email,
-			})
-		}
-		err := config.DB.Where("email=?", otp.Email).Save(&otp).Error
-		if err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to save doctor email",
-			})
-		}
-		return c.JSON(200, map[string]interface{}{
-			"message": "Please check your email",
+	c.Bind(&doctor)
+	doctor.Status = "notapproved"
+	if err := config.DB.Create(&doctor).Error; err != nil {
+		return c.JSON(500, map[string]interface{}{
+			"message": "failed to create doctor",
+			"error":   err.Error(),
 		})
-	} else {
-		if err := config.DB.Where("email= ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Wrong OTP",
-			})
-		}
-		doctor.Email = otp.Email
-		doctor.Password = otp.Password
-		doctor.FullName = otp.Fullname
-		doctor.DisplayName = otp.Displayname
-		doctor.Alumnus = otp.Alumnus
-		doctor.Workplace = otp.Workplace
-		doctor.PracticeAddress = otp.PracticeAddress
-		if err := config.DB.Create(&doctor).Error; err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to  create doctor",
-			})
-		}
 	}
 	return c.JSON(200, map[string]interface{}{
 		"message": "success create doctor",
-		"data":    doctor,
+		"doctor":  doctor,
 	})
 }
 
 func LoginDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	c.Bind(&doctor)
-	if err := config.DB.Where("email = ? AND password = ?", doctor.Email, doctor.Password).First(&doctor).Error; err != nil {
+	if err := config.DB.Where("email = ? AND password = ? AND status = ?", doctor.Email, doctor.Password, "approved").First(&doctor).Error; err != nil {
 		return c.JSON(500, map[string]interface{}{
 			"message": "failed to login",
 			"error":   err.Error(),
@@ -233,7 +201,7 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 
 	config.DB.Find(&doctors)
 
-	if err := config.DB.Find(&doctors).Error; err != nil {
+	if err := config.DB.Where("status=?", "approved").Find(&doctors).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{

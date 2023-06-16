@@ -23,7 +23,12 @@ func RegisterUser(c echo.Context) error {
 
 	if otp.OTP == "" {
 		otp.OTP = email.GenerateOTP()
-		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
+		if err := config.DB.Where("email = ?", otp.Email).First(&user).Error; err == nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "Email already registered",
+			})
+		}
+		if err:=email.SendEmail(otp.Username ,otp.Email, otp.OTP); err!=nil{
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
 				"error":   err.Error(),
@@ -54,6 +59,12 @@ func RegisterUser(c echo.Context) error {
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
+				"error":   err.Error(),
+			})
+		}
+		if err := config.DB.Where("email=?", otp.Email).Delete(&otp).Error; err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to delete otp",
 				"error":   err.Error(),
 			})
 		}
