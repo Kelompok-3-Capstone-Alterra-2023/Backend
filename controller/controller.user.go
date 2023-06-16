@@ -4,10 +4,12 @@ import (
 	"capstone/config"
 	"capstone/lib/email"
 	"capstone/middleware"
+	m "capstone/middleware"
 	"capstone/model"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -26,7 +28,7 @@ func RegisterUser(c echo.Context) error {
 				"message": "Email already registered",
 			})
 		}
-		if err:=email.SendEmail(otp.Username ,otp.Email, otp.OTP); err!=nil{
+		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
 				"error":   err.Error(),
@@ -169,68 +171,55 @@ func UpdateUser(c echo.Context) error {
 }
 
 func AddDoctorFavorite(c echo.Context) error {
-
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+
+	id := int(m.ExtractUserIdToken(token))
+
+	idDoctor, _ := strconv.Atoi(c.Param("id"))
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", userID).Find(&user)
+	config.DB.Where("id = ?", id).Find(&user)
 
-	json_map := make(map[string]interface{})
-
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	config.DB.First(&doctor, json_map["doctorID"])
+	config.DB.First(&doctor, idDoctor)
 
 	if doctor.Email == "" {
 		return c.JSON(http.StatusBadRequest, "cant find doctor")
 	}
 
-
-	config.DB.Model(&model.User{}).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
+	config.DB.Model(&user).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
 
 	return c.JSON(http.StatusOK, "success add doctor favorite")
 }
 
 func DeleteDoctorFavorite(c echo.Context) error {
-
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+
+	id := int(m.ExtractUserIdToken(token))
+
+	idDoctor, _ := strconv.Atoi(c.Param("id"))
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", userID).Find(&user)
+	config.DB.Where("id = ?", id).Find(&user)
 
-	json_map := make(map[string]interface{})
-
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	config.DB.First(&doctor, json_map["doctorID"])
+	config.DB.First(&doctor, idDoctor)
 
 	if doctor.Email == "" {
-		return c.JSON(http.StatusBadRequest, "cant find doctor")
+		return c.JSON(http.StatusBadRequest, doctor)
 	}
 
-	count := config.DB.Where("id = ?", userID).Association("Doctors").Count()
+	count := config.DB.Model(&user).Association("Doctors").Count()
 
-	config.DB.Model(&model.User{}).Association("Doctors").Delete(doctor)
+	config.DB.Model(&user).Association("Doctors").Delete(&doctor)
 
-	count2 := config.DB.Where("id = ?", userID).Association("Doctors").Count()
+	count2 := config.DB.Model(&user).Association("Doctors").Count()
 
 	if count <= count2 {
-		return c.JSON(http.StatusInternalServerError, "cant delete doctor favorite")
-
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"count 1": count,
+			"count 2": count2,
+		})
 	}
 
 	return c.JSON(http.StatusOK, "success delete doctor favorite")
@@ -238,18 +227,15 @@ func DeleteDoctorFavorite(c echo.Context) error {
 
 func GetDoctorFav(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+
+	id := int(m.ExtractUserIdToken(token))
 
 	var user model.User
 
-	config.DB.Where("id = ?", userID).First(&user)
-
-	config.DB.Model(&model.User{}).Association("Doctors").Find(&model.Doctor{})
-	count := config.DB.Where("id = ?", userID).Association("Doctors").Count()
+	config.DB.Model(&model.User{}).Where("id = ?", id).Preload("Doctors").Find(&user)
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"user":  user,
-		"count": count,
+		"user": user,
 	})
 
 }
