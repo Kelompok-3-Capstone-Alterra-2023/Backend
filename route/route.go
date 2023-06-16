@@ -53,11 +53,14 @@ func New() *echo.Echo {
 	articleAdminController := controller.ArticleAdminController{}
 	doctorAdminController := controller.DoctorAdminController{}
 	eAdm := e.Group("admin")
+	eAdm.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.POST("adm/login", controller.LoginAdmin)
 	eAdm.GET("/articles", articleAdminController.GetArticles)
 	eAdm.GET("/articles/:id", articleAdminController.GetDetailArticle)
 	eAdm.PUT("/articles/:id", articleAdminController.AcceptArticle)
 	eAdm.DELETE("/articles/:id", articleAdminController.DeleteArticle)
 	eAdm.GET("/articles/search", articleAdminController.SearchArticles)
+	eAdm.PUT("/doctors/:id/approve", doctorAdminController.ApproveDoctor)
 	eAdm.GET("/doctors", doctorAdminController.GetDoctors)
 	eAdm.GET("/doctor/:id", doctorAdminController.GetDoctor)
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)

@@ -20,6 +20,33 @@ import (
 // for admin
 type DoctorAdminController struct{}
 
+// Handler untuk menyetujui pendaftaran dokter
+func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
+	var doctor model.Doctor
+	c.Bind(&doctor)
+
+	// Cari dokter berdasarkan ID
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid doctor ID")
+	}
+
+	if err := config.DB.First(&doctor, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return echo.NewHTTPError(http.StatusNotFound, "doctor not found")
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve doctor's data")
+	}
+
+	// Jika dokter ditemukan
+	doctor.Status = "approved"
+	if err := config.DB.Save(&doctor).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
+	}
+
+	return c.JSON(http.StatusOK, "doctor registration approved")
+}
+
 // get all doctors
 func (a *DoctorAdminController) GetDoctors(c echo.Context) error {
 	var doctors []model.Doctor
