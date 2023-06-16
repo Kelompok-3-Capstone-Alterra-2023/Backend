@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"capstone/config"
 	"capstone/model"
@@ -16,6 +18,33 @@ import (
 
 // for admin
 type DoctorAdminController struct{}
+
+// Handler untuk menyetujui pendaftaran dokter
+func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
+	var doctor model.Doctor
+	c.Bind(&doctor)
+
+	// Cari dokter berdasarkan ID
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid doctor ID")
+	}
+
+	if err := config.DB.First(&doctor, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return echo.NewHTTPError(http.StatusNotFound, "doctor not found")
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve doctor's data")
+	}
+
+	// Jika dokter ditemukan
+	doctor.Status = "approved"
+	if err := config.DB.Save(&doctor).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
+	}
+
+	return c.JSON(http.StatusOK, "doctor registration approved")
+}
 
 // get all doctors
 func (a *DoctorAdminController) GetDoctors(c echo.Context) error {
@@ -163,7 +192,6 @@ func LoginDoctor(c echo.Context) error {
 	})
 }
 
-
 // for user
 type DoctorUserController struct{}
 
@@ -181,4 +209,69 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 		"doctors": doctors,
 	})
 }
+type DoctorRecipt struct{}
 
+func (u *DoctorRecipt) GetAllDrugs(c echo.Context) error {
+	var drugs []model.Drug
+
+	config.DB.Find(&drugs)
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get all drugs",
+		"recipt":  drugs,
+	})
+}
+
+func (u *DoctorRecipt) GetDetailRecipt(c echo.Context) error {
+	var recipt model.Recipt
+
+	reciptID := c.Param("id")
+
+	config.DB.Model(&model.Recipt{}).Preload("Drugs").Find(&recipt, reciptID).Omit("Doctor")
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get recipt",
+		"recipt":  recipt,
+	})
+}
+
+func (u *DoctorRecipt) CreateRecipt(c echo.Context) error {
+	var recipt model.Recipt
+
+	json_map := make(map[string]interface{})
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
+	}
+
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	doctorID := middleware.ExtractDocterIdToken(token)
+
+	// if err := c.Bind(doctorID); err != nil {
+	// 	return c.JSON(http.StatusOK, "success create recipt")
+	// }
+
+	var drugs []model.Drug
+
+	somebyte, _ := json.Marshal(json_map["drugs"])
+	errjson := json.Unmarshal(somebyte, &drugs)
+
+	if errjson != nil {
+		return c.JSON(http.StatusInternalServerError, "error when in unmarshal")
+	}
+
+	recipt.DoctorID = uint(doctorID)
+	recipt.Drugs = drugs
+
+	result := config.DB.Create(&recipt)
+
+	if result.RowsAffected < 1 {
+		return c.JSON(http.StatusInternalServerError, "error when create recipt")
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success create recipt",
+	})
+}

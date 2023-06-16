@@ -5,6 +5,14 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+
+	echojwt "github.com/labstack/echo-jwt/v4"
+
+	"github.com/labstack/echo/v4"
+)
+
+var (
+	MiddlewareJWT echo.MiddlewareFunc
 )
 
 type Jwtcustomclaims struct {
@@ -17,6 +25,15 @@ type Jwtcustomclaims struct {
 	Gender        string `json:"gender" form:"gender" gorm:"type:varchar(2)"`
 	Status_Online bool   `json:"status_online" form:"status_online" gorm:"type:boolean"`
 	jwt.RegisteredClaims
+}
+
+func init() {
+	MiddlewareJWT = echojwt.WithConfig(echojwt.Config{
+		// NewClaimsFunc: func(c echo.Context) jwt.Claims {
+		// 	return new(controller.Jwtcustomclaims)
+		// },
+		SigningKey: []byte("secret"),
+	})
 }
 
 func CreateJWT(user model.User) interface{} {
@@ -68,7 +85,25 @@ func ExtractDocterIdToken(token string) float64 {
 		return []byte("secret"), nil
 	},
 	)
-	return tempToken.Claims.(jwt.MapClaims)["doctorID"].(float64)
+	return tempToken.Claims.(jwt.MapClaims)["doctor_id"].(float64)
+}
+
+func CreateAdminJWT(adminID uint) (string, error) {
+	claims := jwt.MapClaims{}
+	claims["authorized"] = true
+	claims["admin_id"] = adminID
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte("secret"))
+}
+
+func ExtractAdminIdToken(token string) float64 {
+	claims := jwt.MapClaims{}
+	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+		return []byte("secret"), nil
+	},
+	)
+	return tempToken.Claims.(jwt.MapClaims)["adminID"].(float64)
 }
 
 func ExtractUserIdToken(token string) float64 {
@@ -79,4 +114,3 @@ func ExtractUserIdToken(token string) float64 {
 	)
 	return tempToken.Claims.(jwt.MapClaims)["ID"].(float64)
 }
-

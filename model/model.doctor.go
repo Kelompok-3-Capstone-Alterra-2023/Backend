@@ -38,3 +38,17 @@ type Doctor struct {
 	Specialist      string  `json:"specialist" form:"specialist"`
 	Description     string  `json:"description" form:"description"`
 }
+
+type OrderDetailDoctorResponse struct {
+	ID              uint    `json:"id" form:"id"`
+	FullName        string  `json:"full_name" form:"full_name"`
+	Photo           string  `json:"photo" form:"phot"`
+	Specialist      string  `json:"specialist" form:"specialist"`
+	Description     string  `json:"description" form:"description"`
+	WorkExperience  uint    `json:"work_experience" form:"work_experience"`
+	Price           float64 `json:"price" form:"price"`
+	Alumnus         string  `json:"alumnus" form:"alumnus"`
+	PracticeAddress string  `json:"practice_address" form:"practice_address"`
+	STRNumber       string  `json:"str_number" form:"str_number"`
+	OnlineStatus    bool    `json:"status_online" form:"status_online"`
+}
