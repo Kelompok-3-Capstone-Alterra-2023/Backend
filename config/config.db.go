@@ -46,5 +46,7 @@ func InitMigrate() {
 	DB.AutoMigrate(model.Article{})
 	DB.AutoMigrate(model.User{})
 	DB.AutoMigrate(model.UserOTP{})
+	DB.AutoMigrate(model.Recipt{})
+	DB.AutoMigrate(model.Drug{})
 	DB.AutoMigrate(model.Order{}, model.ConsultationSchedule{}, model.Payment{})
 }

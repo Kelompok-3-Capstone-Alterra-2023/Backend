@@ -3,12 +3,15 @@ package controller
 import (
 	"capstone/config"
 	"capstone/lib/email"
-	m "capstone/middleware"
+	"capstone/middleware"
 	"capstone/model"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -71,8 +74,7 @@ func LoginUser(c echo.Context) error {
 		})
 	}
 
-	token := m.CreateJWT(user)
-
+	token := middleware.CreateJWT(user)
 	return c.JSON(200, map[string]interface{}{
 		"message": "success login",
 		"token":   token,
@@ -80,22 +82,23 @@ func LoginUser(c echo.Context) error {
 }
 
 func GetUser(c echo.Context) error {
-	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	token := c.Get("user").(*jwt.Token)
 
-	id := int(m.ExtractUserIdToken(token))
+	claims := token.Claims.(jwt.MapClaims)
 
 	var user model.User
 
-	config.DB.Where("id = ?", id).First(&user)
+	config.DB.Where("id = ?", claims["ID"]).First(&user)
 
 	return c.JSON(http.StatusOK, user)
 }
 
 func DeleteUser(c echo.Context) error {
-	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	token := c.Get("user").(*jwt.Token)
 
-	id := int(m.ExtractUserIdToken(token))
+	claims := token.Claims.(jwt.MapClaims)
 
+	id := claims["ID"]
 	result := config.DB.Delete(&model.User{}, id)
 
 	if result.RowsAffected < 1 {
@@ -106,14 +109,50 @@ func DeleteUser(c echo.Context) error {
 }
 
 func UpdateUser(c echo.Context) error {
-	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	token := c.Get("user").(*jwt.Token)
 
-	id := int(m.ExtractUserIdToken(token))
+	claims := token.Claims.(jwt.MapClaims)
+
+	id := claims["ID"]
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, "cant find data")
+	}
 
 	var user model.User
 	config.DB.Where("id = ?", id).First(&user)
 
-	c.Bind(&user)
+	json_map := make(map[string]interface{})
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
+	}
+
+	if json_map["email"] != "" {
+		user.Email = fmt.Sprintf("%v", json_map["email"])
+	}
+
+	if json_map["username"] != "" {
+		user.Username = fmt.Sprintf("%v", json_map["username"])
+	}
+
+	if json_map["password"] != "" {
+		user.Password = fmt.Sprintf("%v", json_map["password"])
+	}
+
+	if json_map["telpon"] != "" {
+		user.Telp = fmt.Sprintf("%v", json_map["telpon"])
+	}
+
+	if json_map["alamat"] != "" {
+		user.Alamat = fmt.Sprintf("%v", json_map["alamat"])
+	}
+
+	if json_map["gender"] != "" {
+		user.Gender = fmt.Sprintf("%v", json_map["gender"])
+	}
+
 	result := config.DB.Where("id = ?", id).Updates(&user)
 
 	if result.RowsAffected < 1 {
@@ -124,71 +163,88 @@ func UpdateUser(c echo.Context) error {
 }
 
 func AddDoctorFavorite(c echo.Context) error {
-	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-	id := int(m.ExtractUserIdToken(token))
-
-	idDoctor, _ := strconv.Atoi(c.Param("id"))
+	token := c.Get("user").(*jwt.Token)
+	claims := token.Claims.(jwt.MapClaims)
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", id).Find(&user)
+	config.DB.Where("id = ?", claims["ID"]).Find(&user)
 
-	config.DB.First(&doctor, idDoctor)
+	json_map := make(map[string]interface{})
+
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
+	}
+
+	config.DB.First(&doctor, json_map["doctorID"])
 
 	if doctor.Email == "" {
 		return c.JSON(http.StatusBadRequest, "cant find doctor")
 	}
 
-	config.DB.Model(&user).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
+
+	config.DB.Model(&model.User{}).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
 
 	return c.JSON(http.StatusOK, "success add doctor favorite")
 }
 
 func DeleteDoctorFavorite(c echo.Context) error {
-	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-	id := int(m.ExtractUserIdToken(token))
-
-	idDoctor, _ := strconv.Atoi(c.Param("id"))
+	token := c.Get("user").(*jwt.Token)
+	claims := token.Claims.(jwt.MapClaims)
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", id).Find(&user)
+	config.DB.Where("id = ?", claims["id"]).Find(&user)
 
-	config.DB.First(&doctor, idDoctor)
+	json_map := make(map[string]interface{})
 
-	if doctor.Email == "" {
-		return c.JSON(http.StatusBadRequest, doctor)
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
 	}
 
-	count := config.DB.Model(&user).Association("Doctors").Count()
+	config.DB.First(&doctor, json_map["doctorID"])
 
-	config.DB.Model(&user).Association("Doctors").Delete(&doctor)
+	if doctor.Email == "" {
+		return c.JSON(http.StatusBadRequest, "cant find doctor")
+	}
 
-	count2 := config.DB.Model(&user).Association("Doctors").Count()
+	count := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+
+	config.DB.Model(&model.User{}).Association("Doctors").Delete(doctor)
+
+	count2 := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
 
 	if count <= count2 {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"count 1": count,
-			"count 2": count2,
-		})
+		return c.JSON(http.StatusInternalServerError, "cant delete doctor favorite")
+
 	}
 
 	return c.JSON(http.StatusOK, "success delete doctor favorite")
 }
 
 func GetDoctorFav(c echo.Context) error {
-	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	token := c.Get("user").(*jwt.Token)
 
-	id := int(m.ExtractUserIdToken(token))
+	claims := token.Claims.(jwt.MapClaims)
 
 	var user model.User
 
-	config.DB.Model(&model.User{}).Where("id = ?", id).Preload("Doctors").Find(&user)
+	config.DB.Where("id = ?", claims["ID"]).First(&user)
+
+	config.DB.Model(&model.User{}).Association("Doctors").Find(&model.Doctor{})
+	count := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"user": user,
+		"user":  user,
+		"count": count,
 	})
 
 }

@@ -57,4 +57,3 @@ jobs:
             sudo docker container rm capstone-project
             sudo docker image pull habiledgar123/capstone:main
             sudo docker run --name capstone-project -d -p 8080:8080 habiledgar123/capstone:main
-
