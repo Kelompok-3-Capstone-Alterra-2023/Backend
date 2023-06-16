@@ -6,6 +6,7 @@ import (
 	m "capstone/middleware"
 	"capstone/model"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -19,23 +20,23 @@ func RegisterUser(c echo.Context) error {
 
 	if otp.OTP == "" {
 		otp.OTP = email.GenerateOTP()
-		if err:=email.SendEmail(otp.Username ,otp.Email, otp.OTP); err!=nil{
+		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 		}
-		if err:=config.DB.Where("email=?", otp.Email).Save(&otp).Error; err!=nil{
+		if err := config.DB.Where("email=?", otp.Email).Save(&otp).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save email",
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"message": "Please check your email",
 		})
-	}else{
-		if err:=config.DB.Where("email = ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err!=nil{
+	} else {
+		if err := config.DB.Where("email = ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "OTP Wrong",
 			})
@@ -47,10 +48,10 @@ func RegisterUser(c echo.Context) error {
 		user.Telp = otp.Telp
 		user.Status_Online = otp.Status_Online
 
-		if err:=config.DB.Save(&user).Error; err!=nil{
+		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -67,14 +68,15 @@ func LoginUser(c echo.Context) error {
 	if err := config.DB.Where("email = ? AND password = ?", user.Email, user.Password).First(&user).Error; err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "email or password wrong",
-		})}
-	
-		token := m.CreateJWT(user)
-		
-		return c.JSON(200, map[string]interface{}{
-			"message": "success login",
-			"token":   token,
 		})
+	}
+
+	token := m.CreateJWT(user)
+
+	return c.JSON(200, map[string]interface{}{
+		"message": "success login",
+		"token":   token,
+	})
 }
 
 func GetUser(c echo.Context) error {
@@ -119,4 +121,74 @@ func UpdateUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "success update data")
+}
+
+func AddDoctorFavorite(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+
+	id := int(m.ExtractUserIdToken(token))
+
+	idDoctor, _ := strconv.Atoi(c.Param("id"))
+
+	var user model.User
+	var doctor model.Doctor
+	config.DB.Where("id = ?", id).Find(&user)
+
+	config.DB.First(&doctor, idDoctor)
+
+	if doctor.Email == "" {
+		return c.JSON(http.StatusBadRequest, "cant find doctor")
+	}
+
+	config.DB.Model(&user).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
+
+	return c.JSON(http.StatusOK, "success add doctor favorite")
+}
+
+func DeleteDoctorFavorite(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+
+	id := int(m.ExtractUserIdToken(token))
+
+	idDoctor, _ := strconv.Atoi(c.Param("id"))
+
+	var user model.User
+	var doctor model.Doctor
+	config.DB.Where("id = ?", id).Find(&user)
+
+	config.DB.First(&doctor, idDoctor)
+
+	if doctor.Email == "" {
+		return c.JSON(http.StatusBadRequest, doctor)
+	}
+
+	count := config.DB.Model(&user).Association("Doctors").Count()
+
+	config.DB.Model(&user).Association("Doctors").Delete(&doctor)
+
+	count2 := config.DB.Model(&user).Association("Doctors").Count()
+
+	if count <= count2 {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"count 1": count,
+			"count 2": count2,
+		})
+	}
+
+	return c.JSON(http.StatusOK, "success delete doctor favorite")
+}
+
+func GetDoctorFav(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+
+	id := int(m.ExtractUserIdToken(token))
+
+	var user model.User
+
+	config.DB.Model(&model.User{}).Where("id = ?", id).Preload("Doctors").Find(&user)
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"user": user,
+	})
+
 }
