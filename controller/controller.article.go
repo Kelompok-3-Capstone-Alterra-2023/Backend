@@ -132,7 +132,7 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 
-		imageURI, err = awss3.UploadFileS3(date, image)
+		imageURI, err = awss3.UploadFileS3(date, image, "article")
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"message": err.Error(),
@@ -179,7 +179,7 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 	if image != nil {
 		date := time.Now().Format("2006-01-02")
 
-		uri, err := awss3.UploadFileS3(date, image)
+		uri, err := awss3.UploadFileS3(date, image, "article")
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"message": err.Error(),
