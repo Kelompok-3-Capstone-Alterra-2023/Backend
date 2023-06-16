@@ -79,4 +79,3 @@ func ExtractUserIdToken(token string) float64 {
 	)
 	return tempToken.Claims.(jwt.MapClaims)["ID"].(float64)
 }
-

@@ -157,8 +157,8 @@ func CreateDoctor(c echo.Context) error {
 		}
 		doctor.Email = otp.Email
 		doctor.Password = otp.Password
-		doctor.Fullname	 = otp.Fullname
-		doctor.Displayname = otp.Displayname
+		doctor.FullName = otp.Fullname
+		doctor.DisplayName = otp.Displayname
 		doctor.Alumnus = otp.Alumnus
 		doctor.Work = otp.Work
 		doctor.PracticeAddress = otp.PracticeAddress
@@ -197,7 +197,6 @@ func LoginDoctor(c echo.Context) error {
 	})
 }
 
-
 // for user
 type DoctorUserController struct{}
 
@@ -215,4 +214,3 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 		"doctors": doctors,
 	})
 }
-

@@ -23,6 +23,7 @@ func New() *echo.Echo {
 
 	articleUserController := controller.ArticleUserController{}
 	doctorUserController := controller.DoctorUserController{}
+	orderUserController := controller.OrderController{}
 	eUser := e.Group("user")
 	eUser.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 	e.POST("/user/register", controller.RegisterUser)
@@ -31,6 +32,10 @@ func New() *echo.Echo {
 	eUser.GET("/articles/:id", articleUserController.GetDetailArticle)
 	eUser.GET("/articles/search", articleUserController.SearchArticles)
 	eUser.GET("/doctors", doctorUserController.GetDoctors)
+	eUser.GET("/doctor/:id", orderUserController.GetDetailDoctor)
+	eUser.GET("/doctor/:id/schedule", orderUserController.CheckSchedule)
+	eUser.POST("/order/notification", orderUserController.Notification)
+	eUser.POST("/doctor/:id/booking", orderUserController.Order)
 	eUser.GET("/", controller.GetUser)
 	eUser.DELETE("/", controller.DeleteUser)
 	eUser.PUT("/", controller.UpdateUser)

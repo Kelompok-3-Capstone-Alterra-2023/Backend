@@ -58,7 +58,7 @@ func (controller *ArticleAdminController) GetDetailArticle(c echo.Context) error
 	articleResponse := model.DetailArticleResponse{
 		ID:          article.ID,
 		Updated_At:  date,
-		Doctor_Name: article.Doctor.Fullname,
+		Doctor_Name: article.Doctor.FullName,
 		Title:       article.Title,
 		Thumbnail:   article.Thumbnail,
 		Content:     article.Content,
@@ -340,7 +340,7 @@ func (controller *ArticleUserController) GetDetailArticle(c echo.Context) error 
 	articleResponse := model.DetailArticleResponse{
 		ID:          article.ID,
 		Updated_At:  date,
-		Doctor_Name: article.Doctor.Fullname,
+		Doctor_Name: article.Doctor.FullName,
 		Title:       article.Title,
 		Thumbnail:   article.Thumbnail,
 		Content:     article.Content,
