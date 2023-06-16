@@ -38,4 +38,4 @@ require (
 
 require github.com/jinzhu/gorm v1.9.16
 
-require github.com/midtrans/midtrans-go v1.3.6 // indirect
+require github.com/midtrans/midtrans-go v1.3.6
