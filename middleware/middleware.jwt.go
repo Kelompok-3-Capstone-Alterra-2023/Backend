@@ -5,14 +5,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-
-	echojwt "github.com/labstack/echo-jwt/v4"
-
-	"github.com/labstack/echo/v4"
-)
-
-var (
-	MiddlewareJWT echo.MiddlewareFunc
 )
 
 type Jwtcustomclaims struct {
@@ -25,15 +17,6 @@ type Jwtcustomclaims struct {
 	Gender        string `json:"gender" form:"gender" gorm:"type:varchar(2)"`
 	Status_Online bool   `json:"status_online" form:"status_online" gorm:"type:boolean"`
 	jwt.RegisteredClaims
-}
-
-func init() {
-	MiddlewareJWT = echojwt.WithConfig(echojwt.Config{
-		// NewClaimsFunc: func(c echo.Context) jwt.Claims {
-		// 	return new(controller.Jwtcustomclaims)
-		// },
-		SigningKey: []byte("secret"),
-	})
 }
 
 func CreateJWT(user model.User) interface{} {
