@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"capstone/config"
 	"capstone/model"
@@ -11,12 +13,38 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 
-	"capstone/lib/email"
 	"capstone/middleware"
 )
 
 // for admin
 type DoctorAdminController struct{}
+
+// Handler untuk menyetujui pendaftaran dokter
+func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
+	var doctor model.Doctor
+	c.Bind(&doctor)
+
+	// Cari dokter berdasarkan ID
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid doctor ID")
+	}
+
+	if err := config.DB.First(&doctor, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return echo.NewHTTPError(http.StatusNotFound, "doctor not found")
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve doctor's data")
+	}
+
+	// Jika dokter ditemukan
+	doctor.Status = "approved"
+	if err := config.DB.Save(&doctor).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
+	}
+
+	return c.JSON(http.StatusOK, "doctor registration approved")
+}
 
 // get all doctors
 func (a *DoctorAdminController) GetDoctors(c echo.Context) error {
@@ -128,57 +156,24 @@ func (d *DoctorDoctorController) GetDoctors(c echo.Context) error {
 
 func CreateDoctor(c echo.Context) error {
 	var doctor model.Doctor
-	var otp model.DoctorOTP
-	c.Bind(&otp)
-
-	if otp.OTP == "" {
-		otp.OTP = email.GenerateOTP()
-		if err := email.SendEmail("test", otp.Email, otp.OTP); err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to send OTP",
-				"error":   err.Error(),
-			})
-		}
-		err := config.DB.Where("email=?", otp.Email).Save(&otp).Error
-		if err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to save doctor email",
-				"error":   err.Error(),
-			})
-		}
-		return c.JSON(200, map[string]interface{}{
-			"message": "Please check your email",
+	c.Bind(&doctor)
+	doctor.Status = "notapproved"
+	if err := config.DB.Create(&doctor).Error; err != nil {
+		return c.JSON(500, map[string]interface{}{
+			"message": "failed to create doctor",
+			"error":   err.Error(),
 		})
-	} else {
-		if err := config.DB.Where("email= ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Wrong OTP",
-			})
-		}
-		doctor.Email = otp.Email
-		doctor.Password = otp.Password
-		doctor.Fullname	 = otp.Fullname
-		doctor.Displayname = otp.Displayname
-		doctor.Alumnus = otp.Alumnus
-		doctor.Work = otp.Work
-		doctor.PracticeAddress = otp.PracticeAddress
-		if err := config.DB.Create(&doctor).Error; err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "Failed to  create doctor",
-				"error":   err.Error(),
-			})
-		}
 	}
 	return c.JSON(200, map[string]interface{}{
 		"message": "success create doctor",
-		"data":    doctor,
+		"doctor":  doctor,
 	})
 }
 
 func LoginDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	c.Bind(&doctor)
-	if err := config.DB.Where("email = ? AND password = ?", doctor.Email, doctor.Password).First(&doctor).Error; err != nil {
+	if err := config.DB.Where("email = ? AND password = ? AND status = ?", doctor.Email, doctor.Password, "approved").First(&doctor).Error; err != nil {
 		return c.JSON(500, map[string]interface{}{
 			"message": "failed to login",
 			"error":   err.Error(),
@@ -197,7 +192,6 @@ func LoginDoctor(c echo.Context) error {
 	})
 }
 
-
 // for user
 type DoctorUserController struct{}
 
@@ -207,7 +201,7 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 
 	config.DB.Find(&doctors)
 
-	if err := config.DB.Find(&doctors).Error; err != nil {
+	if err := config.DB.Where("status=?", "approved").Find(&doctors).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -215,4 +209,69 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 		"doctors": doctors,
 	})
 }
+type DoctorRecipt struct{}
 
+func (u *DoctorRecipt) GetAllDrugs(c echo.Context) error {
+	var drugs []model.Drug
+
+	config.DB.Find(&drugs)
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get all drugs",
+		"recipt":  drugs,
+	})
+}
+
+func (u *DoctorRecipt) GetDetailRecipt(c echo.Context) error {
+	var recipt model.Recipt
+
+	reciptID := c.Param("id")
+
+	config.DB.Model(&model.Recipt{}).Preload("Drugs").Find(&recipt, reciptID).Omit("Doctor")
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get recipt",
+		"recipt":  recipt,
+	})
+}
+
+func (u *DoctorRecipt) CreateRecipt(c echo.Context) error {
+	var recipt model.Recipt
+
+	json_map := make(map[string]interface{})
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
+	}
+
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	doctorID := middleware.ExtractDocterIdToken(token)
+
+	// if err := c.Bind(doctorID); err != nil {
+	// 	return c.JSON(http.StatusOK, "success create recipt")
+	// }
+
+	var drugs []model.Drug
+
+	somebyte, _ := json.Marshal(json_map["drugs"])
+	errjson := json.Unmarshal(somebyte, &drugs)
+
+	if errjson != nil {
+		return c.JSON(http.StatusInternalServerError, "error when in unmarshal")
+	}
+
+	recipt.DoctorID = uint(doctorID)
+	recipt.Drugs = drugs
+
+	result := config.DB.Create(&recipt)
+
+	if result.RowsAffected < 1 {
+		return c.JSON(http.StatusInternalServerError, "error when create recipt")
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success create recipt",
+	})
+}
