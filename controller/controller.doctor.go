@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"capstone/config"
 	"capstone/model"
+	awss3 "capstone/service/aws"
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
@@ -156,7 +158,90 @@ func (d *DoctorDoctorController) GetDoctors(c echo.Context) error {
 
 func CreateDoctor(c echo.Context) error {
 	var doctor model.Doctor
+	var cvurl, ijazahurl, strurl, sipurl string
 	c.Bind(&doctor)
+
+	cv, err := c.FormFile("cv")
+	if cv != nil {
+		if err != nil {
+			return c.JSON(500, map[string]interface{}{
+				"message": "failed to upload cv",
+				"error":   err.Error(),
+			})
+		}
+		date := time.Now().Format("2006-01-02")
+
+		cvurl, err = awss3.UploadFileS3(date, cv, "cv")
+		if err != nil {
+			return c.JSON(500, map[string]interface{}{
+				"message": "failed to upload cv",
+				"error":   err.Error(),
+			})
+		}
+	}
+
+	ijazah, err := c.FormFile("ijazah")
+	if ijazah != nil {
+		if err != nil {
+			return c.JSON(500, map[string]interface{}{
+				"message": "failed to upload ijazah",
+				"error":   err.Error(),
+			})
+		}
+		date := time.Now().Format("2006-01-02")
+
+		ijazahurl, err = awss3.UploadFileS3(date, ijazah, "ijazah")
+		if err != nil {
+			return c.JSON(500, map[string]interface{}{
+				"message": "failed to upload ijazah",
+				"error":   err.Error(),
+			})
+		}
+	}
+
+	str, err := c.FormFile("str")
+	if str != nil {
+		if err != nil {
+			return c.JSON(500, map[string]interface{}{
+				"message": "failed to upload str",
+				"error":   err.Error(),
+			})
+		}
+		date := time.Now().Format("2006-01-02")
+
+		strurl, err = awss3.UploadFileS3(date, str, "str")
+		if err != nil {
+			return c.JSON(500, map[string]interface{}{
+				"message": "failed to upload str",
+				"error":   err.Error(),
+			})
+		}
+	}
+
+	sip, err := c.FormFile("sip")
+	if sip != nil {
+		if err != nil {
+			return c.JSON(500, map[string]interface{}{
+				"message": "failed to upload sip",
+				"error":   err.Error(),
+			})
+		}
+		date := time.Now().Format("2006-01-02")
+
+		sipurl, err = awss3.UploadFileS3(date, sip, "sip")
+		if err != nil {
+			return c.JSON(500, map[string]interface{}{
+				"message": "failed to upload sip",
+				"error":   err.Error(),
+			})
+		}
+	}
+
+	doctor.CV = cvurl
+	doctor.Ijazah = ijazahurl
+	doctor.STR = strurl
+	doctor.SIP = sipurl
+
 	doctor.Status = "notapproved"
 	if err := config.DB.Create(&doctor).Error; err != nil {
 		return c.JSON(500, map[string]interface{}{
