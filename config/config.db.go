@@ -42,8 +42,7 @@ func Open() error {
 
 
 func InitMigrate(){
-  DB.AutoMigrate(model.Doctor{})
-	DB.AutoMigrate(model.DoctorOTP{})
+  	DB.AutoMigrate(model.Doctor{})
 	DB.AutoMigrate(model.Article{})
 	DB.AutoMigrate(model.User{})
 	DB.AutoMigrate(model.UserOTP{})

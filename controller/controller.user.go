@@ -53,6 +53,7 @@ func RegisterUser(c echo.Context) error {
 		user.Gender = otp.Gender
 		user.Telp = otp.Telp
 		user.Status_Online = otp.Status_Online
+		user.BirthDate = otp.BirthDate
 
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
