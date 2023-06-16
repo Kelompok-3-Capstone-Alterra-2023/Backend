@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -92,23 +92,20 @@ func LoginUser(c echo.Context) error {
 }
 
 func GetUser(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
-
-	claims := token.Claims.(jwt.MapClaims)
-
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	userID := int(middleware.ExtractUserIdToken(token))
 	var user model.User
 
-	config.DB.Where("id = ?", claims["ID"]).First(&user)
+	config.DB.Where("id = ?", userID).First(&user)
 
 	return c.JSON(http.StatusOK, user)
 }
 
 func DeleteUser(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	userID := int(middleware.ExtractUserIdToken(token))
 
-	claims := token.Claims.(jwt.MapClaims)
-
-	id := claims["ID"]
+	id := userID
 	result := config.DB.Delete(&model.User{}, id)
 
 	if result.RowsAffected < 1 {
@@ -119,12 +116,11 @@ func DeleteUser(c echo.Context) error {
 }
 
 func UpdateUser(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	userID := int(middleware.ExtractUserIdToken(token))
 
-	claims := token.Claims.(jwt.MapClaims)
-
-	id := claims["ID"]
-	if id == "" {
+	id := userID
+	if userID == 0 {
 		return c.JSON(http.StatusBadRequest, "cant find data")
 	}
 
@@ -174,12 +170,12 @@ func UpdateUser(c echo.Context) error {
 
 func AddDoctorFavorite(c echo.Context) error {
 
-	token := c.Get("user").(*jwt.Token)
-	claims := token.Claims.(jwt.MapClaims)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	userID := int(middleware.ExtractUserIdToken(token))
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", claims["ID"]).Find(&user)
+	config.DB.Where("id = ?", userID).Find(&user)
 
 	json_map := make(map[string]interface{})
 
@@ -204,12 +200,12 @@ func AddDoctorFavorite(c echo.Context) error {
 
 func DeleteDoctorFavorite(c echo.Context) error {
 
-	token := c.Get("user").(*jwt.Token)
-	claims := token.Claims.(jwt.MapClaims)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	userID := int(middleware.ExtractUserIdToken(token))
 
 	var user model.User
 	var doctor model.Doctor
-	config.DB.Where("id = ?", claims["id"]).Find(&user)
+	config.DB.Where("id = ?", userID).Find(&user)
 
 	json_map := make(map[string]interface{})
 
@@ -226,11 +222,11 @@ func DeleteDoctorFavorite(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "cant find doctor")
 	}
 
-	count := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+	count := config.DB.Where("id = ?", userID).Association("Doctors").Count()
 
 	config.DB.Model(&model.User{}).Association("Doctors").Delete(doctor)
 
-	count2 := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+	count2 := config.DB.Where("id = ?", userID).Association("Doctors").Count()
 
 	if count <= count2 {
 		return c.JSON(http.StatusInternalServerError, "cant delete doctor favorite")
@@ -241,16 +237,15 @@ func DeleteDoctorFavorite(c echo.Context) error {
 }
 
 func GetDoctorFav(c echo.Context) error {
-	token := c.Get("user").(*jwt.Token)
-
-	claims := token.Claims.(jwt.MapClaims)
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	userID := int(middleware.ExtractUserIdToken(token))
 
 	var user model.User
 
-	config.DB.Where("id = ?", claims["ID"]).First(&user)
+	config.DB.Where("id = ?", userID).First(&user)
 
 	config.DB.Model(&model.User{}).Association("Doctors").Find(&model.Doctor{})
-	count := config.DB.Where("id = ?", claims["ID"]).Association("Doctors").Count()
+	count := config.DB.Where("id = ?", userID).Association("Doctors").Count()
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"user":  user,
