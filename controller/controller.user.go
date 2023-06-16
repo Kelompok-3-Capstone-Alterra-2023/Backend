@@ -58,6 +58,12 @@ func RegisterUser(c echo.Context) error {
 				"error": err.Error(),
 			})
 		}
+		if err := config.DB.Where("email=?", otp.Email).Delete(&otp).Error; err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to delete otp",
+				"error":   err.Error(),
+			})
+		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
 			"message": "success register",
 		})

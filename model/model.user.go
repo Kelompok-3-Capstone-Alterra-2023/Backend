@@ -12,5 +12,6 @@ type User struct {
 	Telp          string `json:"telpon" form:"telpon" gorm:"varchar(20)"`
 	Alamat        string `json:"alamat" form:"alamat" gorm:"type:text"`
 	Gender        string `json:"gender" form:"gender" gorm:"type:varchar(2)"`
+	BirthDate    string `json:"birthdate" form:"birthdate" gorm:"type:date"`
 	Status_Online bool   `json:"status_online" form:"status_online" gorm:"type:boolean"`
 }
