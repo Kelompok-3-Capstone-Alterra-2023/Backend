@@ -158,8 +158,8 @@ func CreateDoctor(c echo.Context) error {
 		}
 		doctor.Email = otp.Email
 		doctor.Password = otp.Password
-		doctor.Fullname = otp.Fullname
-		doctor.Displayname = otp.Displayname
+		doctor.FullName = otp.Fullname
+		doctor.DisplayName = otp.Displayname
 		doctor.Alumnus = otp.Alumnus
 		doctor.Workplace = otp.Workplace
 		doctor.PracticeAddress = otp.PracticeAddress
@@ -214,7 +214,6 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 		"doctors": doctors,
 	})
 }
-
 type DoctorRecipt struct{}
 
 func (u *DoctorRecipt) GetAllDrugs(c echo.Context) error {

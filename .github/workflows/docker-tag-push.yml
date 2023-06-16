@@ -34,6 +34,9 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
     
+    - name: Modify Dockerfile
+      run: sed -i 's/FROM node:12/FROM node:16/' Dockerfile
+
     - name: Build and push Docker image
       uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
       with:
@@ -41,3 +44,16 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+    
+    - name: Deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: 22
+        script: |
+            sudo docker stop capstone-project
+            sudo docker container rm capstone-project
+            sudo docker image pull habiledgar123/capstone:main
+            sudo docker run --name capstone-project -d -p 8080:8080 habiledgar123/capstone:main

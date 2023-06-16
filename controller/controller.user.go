@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -24,11 +26,13 @@ func RegisterUser(c echo.Context) error {
 		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
+				"error":   err.Error(),
 			})
 		}
 		if err := config.DB.Where("email=?", otp.Email).Save(&otp).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save email",
+				"error":   err.Error(),
 			})
 		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -50,6 +54,7 @@ func RegisterUser(c echo.Context) error {
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
+				"error":   err.Error(),
 			})
 		}
 		return c.JSON(http.StatusOK, map[string]interface{}{
@@ -70,7 +75,6 @@ func LoginUser(c echo.Context) error {
 	}
 
 	token := middleware.CreateJWT(user)
-
 	return c.JSON(200, map[string]interface{}{
 		"message": "success login",
 		"token":   token,
@@ -159,6 +163,7 @@ func UpdateUser(c echo.Context) error {
 }
 
 func AddDoctorFavorite(c echo.Context) error {
+
 	token := c.Get("user").(*jwt.Token)
 	claims := token.Claims.(jwt.MapClaims)
 
@@ -181,12 +186,14 @@ func AddDoctorFavorite(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "cant find doctor")
 	}
 
+
 	config.DB.Model(&model.User{}).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
 
 	return c.JSON(http.StatusOK, "success add doctor favorite")
 }
 
 func DeleteDoctorFavorite(c echo.Context) error {
+
 	token := c.Get("user").(*jwt.Token)
 	claims := token.Claims.(jwt.MapClaims)
 
@@ -217,6 +224,7 @@ func DeleteDoctorFavorite(c echo.Context) error {
 
 	if count <= count2 {
 		return c.JSON(http.StatusInternalServerError, "cant delete doctor favorite")
+
 	}
 
 	return c.JSON(http.StatusOK, "success delete doctor favorite")

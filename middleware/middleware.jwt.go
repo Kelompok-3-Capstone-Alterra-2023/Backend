@@ -87,3 +87,12 @@ func ExtractDocterIdToken(token string) float64 {
 	)
 	return tempToken.Claims.(jwt.MapClaims)["doctor_id"].(float64)
 }
+
+func ExtractUserIdToken(token string) float64 {
+	claims := jwt.MapClaims{}
+	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+		return []byte("secret"), nil
+	},
+	)
+	return tempToken.Claims.(jwt.MapClaims)["ID"].(float64)
+}
