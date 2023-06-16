@@ -247,8 +247,12 @@ func (u *DoctorRecipt) CreateRecipt(c echo.Context) error {
 	}
 
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	doctorID := middleware.ExtractDocterIdToken(token)
-
+	doctorID, err := middleware.ExtractDocterIdToken(token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": err.Error(),
+		})
+	}
 	// if err := c.Bind(doctorID); err != nil {
 	// 	return c.JSON(http.StatusOK, "success create recipt")
 	// }

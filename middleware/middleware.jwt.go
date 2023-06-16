@@ -79,13 +79,13 @@ func CreateDoctorJWT(doctorID uint) (string, error) {
 	return token.SignedString([]byte("secret"))
 }
 
-func ExtractDocterIdToken(token string) float64 {
+func ExtractDocterIdToken(token string) (float64 , error){
 	claims := jwt.MapClaims{}
-	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+	tempToken, err := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
 		return []byte("secret"), nil
 	},
 	)
-	return tempToken.Claims.(jwt.MapClaims)["doctor_id"].(float64)
+	return tempToken.Claims.(jwt.MapClaims)["doctor_id"].(float64), err
 }
 
 func CreateAdminJWT(adminID uint) (string, error) {
@@ -97,18 +97,18 @@ func CreateAdminJWT(adminID uint) (string, error) {
 	return token.SignedString([]byte("secret"))
 }
 
-func ExtractAdminIdToken(token string) float64 {
+func ExtractAdminIdToken(token string) (float64, error) {
 	claims := jwt.MapClaims{}
-	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+	tempToken, err := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
 		return []byte("secret"), nil
 	},
 	)
-	return tempToken.Claims.(jwt.MapClaims)["adminID"].(float64)
+	return tempToken.Claims.(jwt.MapClaims)["adminID"].(float64), err
 }
 
-func ExtractUserIdToken(token string) float64 {
+func ExtractUserIdToken(token string) (float64) {
 	claims := jwt.MapClaims{}
-	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+	tempToken, _:= jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
 		return []byte("secret"), nil
 	},
 	)
