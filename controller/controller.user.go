@@ -26,7 +26,7 @@ func RegisterUser(c echo.Context) error {
 				"message": "Email already registered",
 			})
 		}
-		if err:=email.SendEmail(otp.Username ,otp.Email, otp.OTP); err!=nil{
+		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
 				"error":   err.Error(),
@@ -177,21 +177,13 @@ func AddDoctorFavorite(c echo.Context) error {
 	var doctor model.Doctor
 	config.DB.Where("id = ?", userID).Find(&user)
 
-	json_map := make(map[string]interface{})
+	idDoctor := c.Param("id")
 
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	config.DB.First(&doctor, json_map["doctorID"])
+	config.DB.First(&doctor, idDoctor)
 
 	if doctor.Email == "" {
 		return c.JSON(http.StatusBadRequest, "cant find doctor")
 	}
-
 
 	config.DB.Model(&model.User{}).Where("id = ?", user.ID).Association("Doctors").Append(&doctor)
 
@@ -207,16 +199,9 @@ func DeleteDoctorFavorite(c echo.Context) error {
 	var doctor model.Doctor
 	config.DB.Where("id = ?", userID).Find(&user)
 
-	json_map := make(map[string]interface{})
+	idDoctor := c.Param("id")
 
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	config.DB.First(&doctor, json_map["doctorID"])
+	config.DB.First(&doctor, idDoctor)
 
 	if doctor.Email == "" {
 		return c.JSON(http.StatusBadRequest, "cant find doctor")
