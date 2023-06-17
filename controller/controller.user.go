@@ -7,7 +7,6 @@ import (
 	m "capstone/middleware"
 	"capstone/model"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,6 +19,7 @@ func RegisterUser(c echo.Context) error {
 	var otp model.UserOTP
 
 	c.Bind(&otp)
+	c.Bind(&user)
 
 	if otp.OTP == "" {
 		otp.OTP = email.GenerateOTP()
@@ -49,14 +49,7 @@ func RegisterUser(c echo.Context) error {
 				"message": "OTP Wrong",
 			})
 		}
-		user.Email = otp.Email
-		user.Username = otp.Username
-		user.Password = otp.Password
-		user.Gender = otp.Gender
-		user.Telp = otp.Telp
-		user.Status_Online = otp.Status_Online
-		user.BirthDate = otp.BirthDate
-
+		
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
@@ -129,37 +122,7 @@ func UpdateUser(c echo.Context) error {
 	var user model.User
 	config.DB.Where("id = ?", id).First(&user)
 
-	json_map := make(map[string]interface{})
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	if json_map["email"] != "" {
-		user.Email = fmt.Sprintf("%v", json_map["email"])
-	}
-
-	if json_map["username"] != "" {
-		user.Username = fmt.Sprintf("%v", json_map["username"])
-	}
-
-	if json_map["password"] != "" {
-		user.Password = fmt.Sprintf("%v", json_map["password"])
-	}
-
-	if json_map["telpon"] != "" {
-		user.Telp = fmt.Sprintf("%v", json_map["telpon"])
-	}
-
-	if json_map["alamat"] != "" {
-		user.Alamat = fmt.Sprintf("%v", json_map["alamat"])
-	}
-
-	if json_map["gender"] != "" {
-		user.Gender = fmt.Sprintf("%v", json_map["gender"])
-	}
+	c.Bind(&user)
 
 	result := config.DB.Where("id = ?", id).Updates(&user)
 
