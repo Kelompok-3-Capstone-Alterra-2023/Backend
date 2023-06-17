@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"capstone/config"
 	"capstone/middleware"
+	"capstone/model"
 	"fmt"
 	"log"
 	"net/http"
@@ -26,9 +28,10 @@ var (
 )
 
 type Message struct {
-	From    int
-	To      int    `json:"to"`
-	Message string `json:"message"`
+	From       int
+	To         int    `json:"to"`
+	Message    string `json:"message"`
+	RoleSender string `json:"role_sender"`
 }
 
 func ConnectWSUser(c echo.Context) error {
@@ -77,10 +80,31 @@ func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocke
 		}
 	}()
 
+	chatroom := model.ChatRoom{}
+	// mess := Message{}
+	// chatroom := model.ChatRoom{}
+	// //to get chatroom id
+	// currentconn.ReadJSON(&mess)
+	// if mess.RoleSennder == "user" {
+	// 	config.DB.Model(&model.ChatRoom{}).Where("user_id = ? AND doctor_id = ?", mess.From, mess.To).Find(&chatroom)
+	// } else if mess.RoleSennder == "doctor" {
+	// 	config.DB.Model(&model.ChatRoom{}).Where("user_id = ? AND doctor_id = ?", mess.To, mess.From).Find(&chatroom)
+
+	// }
+
 	for {
 		message := Message{}
 
 		err := currentconn.ReadJSON(&message)
+		if message.RoleSender == "user" {
+			message.From = from
+			chatroom.UserID = uint(message.From)
+			chatroom.DoctorID = uint(message.To)
+		} else if message.RoleSender == "doctor" {
+			message.From = from
+			chatroom.DoctorID = uint(message.From)
+			chatroom.UserID = uint(message.To)
+		}
 		message.From = from
 
 		if err != nil {
@@ -98,11 +122,15 @@ func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocke
 			return
 		}
 
-		sendMessage(currentconn, message, connectionmapsender[message.To])
+		errsave := saveMessage(message, chatroom)
+		if !errsave {
+			log.Println("error when save chat", errsave)
+		}
+		sendMessage(message, connectionmapsender[message.To])
 	}
 }
 
-func sendMessage(currentconn *websocket.Conn, message Message, destination *websocket.Conn) {
+func sendMessage(message Message, destination *websocket.Conn) {
 	destination.WriteJSON(message)
 }
 
@@ -111,4 +139,38 @@ func closeconn(currentconn *websocket.Conn, message Message) {
 		return each == currentconn
 	}).Result()
 	wsconnuser[message.From] = filtered.(*websocket.Conn)
+}
+
+func createChatRoom(user model.User, doctor model.Doctor) (model.ChatRoom, error) {
+
+	err := config.DB.Model(&doctor).Where("id = ?", doctor.ID).Association("ChatwithUser").Append(&user)
+	if err != nil {
+		return model.ChatRoom{}, err
+	}
+
+	ChatRoom := model.ChatRoom{}
+	result := config.DB.Model(&ChatRoom).Create(model.ChatRoom{
+		UserID:   user.ID,
+		DoctorID: doctor.ID,
+	})
+
+	if result.RowsAffected < 1 {
+		return model.ChatRoom{}, nil
+	}
+	var Chatroom model.ChatRoom
+	config.DB.Model(model.ChatRoom{}).Where("user_id = ? AND doctor_id = ?", user.ID, doctor.ID).Find(&Chatroom)
+	return Chatroom, nil
+}
+
+func saveMessage(message Message, chatroom model.ChatRoom) bool {
+	chat := model.Chat{}
+	chat.UserIDnoFK = int(chatroom.UserID)
+	chat.DoctorIDnoFK = int(chatroom.DoctorID)
+	chat.Content = message.Message
+	result := config.DB.Create(&chat)
+
+	if result.RowsAffected < 1 {
+		return false
+	}
+	return true
 }

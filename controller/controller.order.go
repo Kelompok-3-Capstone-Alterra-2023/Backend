@@ -154,9 +154,20 @@ func (controller *OrderController) Order(c echo.Context) error {
 		})
 	}
 
+	//creating chat room
+	chatroom, errroom := createChatRoom(user, doctor)
+
+	if errroom != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "success booking but fail get chatroom",
+			"data":    bookingResp,
+		})
+	}
+
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"message": "success",
-		"data":    bookingResp,
+		"message":      "success booking and get chatroom",
+		"data":         bookingResp,
+		"chat room id": chatroom,
 	})
 
 }
