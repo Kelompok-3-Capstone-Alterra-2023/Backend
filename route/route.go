@@ -4,10 +4,12 @@ import (
 	"capstone/constant"
 	"capstone/controller"
 	m "capstone/middleware"
+	"net/http"
 
 	jwtMid "github.com/labstack/echo-jwt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func New() *echo.Echo {
