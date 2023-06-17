@@ -159,6 +159,7 @@ func (d *DoctorDoctorController) GetDoctors(c echo.Context) error {
 func CreateDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	var cvurl, ijazahurl, strurl, sipurl string
+	var awsObjCV, awsObjIjazah, awsObjSip, awsObjStr awss3.S3Object
 	c.Bind(&doctor)
 
 	cv, err := c.FormFile("cv")
@@ -170,14 +171,7 @@ func CreateDoctor(c echo.Context) error {
 			})
 		}
 		date := time.Now().Format("2006-01-02")
-
-		cvurl, err = awss3.UploadFileS3(date, cv, "cv")
-		if err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "failed to upload cv",
-				"error":   err.Error(),
-			})
-		}
+		awsObjCV = awss3.CreateObject(date, "cv", cv)
 	}
 
 	ijazah, err := c.FormFile("ijazah")
@@ -189,14 +183,7 @@ func CreateDoctor(c echo.Context) error {
 			})
 		}
 		date := time.Now().Format("2006-01-02")
-
-		ijazahurl, err = awss3.UploadFileS3(date, ijazah, "ijazah")
-		if err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "failed to upload ijazah",
-				"error":   err.Error(),
-			})
-		}
+		awsObjIjazah = awss3.CreateObject(date, "ijazah", ijazah)
 	}
 
 	str, err := c.FormFile("str")
@@ -208,14 +195,8 @@ func CreateDoctor(c echo.Context) error {
 			})
 		}
 		date := time.Now().Format("2006-01-02")
+		awsObjStr = awss3.CreateObject(date, "str", str)
 
-		strurl, err = awss3.UploadFileS3(date, str, "str")
-		if err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "failed to upload str",
-				"error":   err.Error(),
-			})
-		}
 	}
 
 	sip, err := c.FormFile("sip")
@@ -227,14 +208,41 @@ func CreateDoctor(c echo.Context) error {
 			})
 		}
 		date := time.Now().Format("2006-01-02")
+		awsObjSip = awss3.CreateObject(date, "sip", sip)
+	}
+	cvurl, err = awss3.UploadFileS3(awsObjCV, cv)
+	if err != nil {
+		return c.JSON(500, map[string]interface{}{
+			"message": "failed to upload cv",
+			"error":   err.Error(),
+		})
+	}
 
-		sipurl, err = awss3.UploadFileS3(date, sip, "sip")
-		if err != nil {
-			return c.JSON(500, map[string]interface{}{
-				"message": "failed to upload sip",
-				"error":   err.Error(),
-			})
-		}
+	ijazahurl, err = awss3.UploadFileS3(awsObjIjazah, ijazah)
+	if err != nil {
+		awss3.DeleteObject(awsObjCV)
+		return c.JSON(500, map[string]interface{}{
+			"message": "failed to upload ijazah",
+			"error":   err.Error(),
+		})
+	}
+
+	strurl, err = awss3.UploadFileS3(awsObjStr, str)
+	if err != nil {
+		awss3.DeleteObject(awsObjCV, awsObjIjazah)
+		return c.JSON(500, map[string]interface{}{
+			"message": "failed to upload str",
+			"error":   err.Error(),
+		})
+	}
+
+	sipurl, err = awss3.UploadFileS3(awsObjSip, sip)
+	if err != nil {
+		awss3.DeleteObject(awsObjCV, awsObjIjazah, awsObjStr)
+		return c.JSON(500, map[string]interface{}{
+			"message": "failed to upload sip",
+			"error":   err.Error(),
+		})
 	}
 
 	doctor.CV = cvurl
@@ -244,6 +252,7 @@ func CreateDoctor(c echo.Context) error {
 
 	doctor.Status = "notapproved"
 	if err := config.DB.Create(&doctor).Error; err != nil {
+		awss3.DeleteObject(awsObjCV, awsObjIjazah, awsObjStr, awsObjSip)
 		return c.JSON(500, map[string]interface{}{
 			"message": "failed to create doctor",
 			"error":   err.Error(),
@@ -294,6 +303,7 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 		"doctors": doctors,
 	})
 }
+
 type DoctorRecipt struct{}
 
 func (u *DoctorRecipt) GetAllDrugs(c echo.Context) error {

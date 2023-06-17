@@ -4,11 +4,14 @@ package controller
 import (
 	"capstone/middleware"
 	"capstone/model"
+	"capstone/service/aws"
 	awss3 "capstone/service/aws"
 	"capstone/service/database"
+	"capstone/util"
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -102,13 +105,32 @@ func (controller *ArticleAdminController) SearchArticles(c echo.Context) error {
 }
 
 func (controller *ArticleAdminController) DeleteArticle(c echo.Context) error {
-	err := database.DeleteArticle(c.Param("id"))
+	article, err := database.GetArticleById(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"message": err.Error(),
 		})
 	}
 
+	parsedURL, err := url.Parse(article.Thumbnail)
+	if err != nil {
+		fmt.Println("Error parsing URL:", err)
+	}
+
+	hosts := util.SplitBy(parsedURL.Host, '.')
+	awsObj := aws.S3Object{
+		Bucket: hosts[0],
+		Key:    parsedURL.Path,
+	}
+
+	err = database.DeleteArticle(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": err.Error(),
+		})
+	}
+
+	aws.DeleteObject(awsObj)
 	return c.JSON(http.StatusOK, map[string]string{
 		"message": "success delete article",
 	})
@@ -121,6 +143,7 @@ type ArticleDoctorController struct {
 func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 	var article model.Article
 	var imageURI string
+	var awsObj aws.S3Object
 	c.Bind(&article)
 
 	image, err := c.FormFile("thumbnail")
@@ -131,13 +154,7 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 			})
 		}
 		date := time.Now().Format("2006-01-02")
-
-		imageURI, err = awss3.UploadFileS3(date, image, "article")
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{
-				"message": err.Error(),
-			})
-		}
+		awsObj = aws.CreateObject(date, "article", image)
 	}
 
 	// get doctor id from jwt token
@@ -148,11 +165,22 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
+
+	if awsObj.Key != "" {
+		imageURI, err = awss3.UploadFileS3(awsObj, image)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+	}
+
 	article.Doctor_ID = uint(doctorID)
 	article.Thumbnail = imageURI
 	article.Status = "ditinjau"
 	err = database.SaveArticle(&article)
 	if err != nil {
+		aws.DeleteObject(awsObj)
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"message": err.Error(),
 		})
@@ -165,6 +193,7 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 
 func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 	var updatedArticle model.Article
+	var awsObj aws.S3Object
 	c.Bind(&updatedArticle)
 
 	article, err := database.GetArticleById(c.Param("id"))
@@ -178,14 +207,14 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 	image, _ := c.FormFile("thumbnail")
 	if image != nil {
 		date := time.Now().Format("2006-01-02")
-
-		uri, err := awss3.UploadFileS3(date, image, "article")
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{
-				"message": err.Error(),
-			})
-		}
-		imageURI = uri
+		awsObj = aws.CreateObject(date, "article", image)
+		// uri, err := awss3.UploadFileS3(date, image, "article")
+		// if err != nil {
+		// 	return c.JSON(http.StatusInternalServerError, map[string]string{
+		// 		"message": err.Error(),
+		// 	})
+		// }
+		// imageURI = uri
 
 	}
 
@@ -197,13 +226,22 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
+	if awsObj.Key != "" {
+		imageURI, err = awss3.UploadFileS3(awsObj, image)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+	}
+
 	if article.Doctor_ID == uint(doctorID) {
 		articleID, _ := strconv.Atoi(c.Param("id"))
 		updatedArticle.ID = uint(articleID)
 		updatedArticle.Thumbnail = imageURI
-
 		err = database.UpdateArticle(&updatedArticle)
 		if err != nil {
+			aws.DeleteObject(awsObj)
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"message": err.Error(),
 			})
@@ -246,6 +284,17 @@ func (controller *ArticleDoctorController) DeleteArticle(c echo.Context) error {
 		})
 	}
 
+	parsedURL, err := url.Parse(article.Thumbnail)
+	if err != nil {
+		fmt.Println("Error parsing URL:", err)
+	}
+
+	hosts := util.SplitBy(parsedURL.Host, '.')
+	awsObj := aws.S3Object{
+		Bucket: hosts[0],
+		Key:    parsedURL.Path,
+	}
+
 	if article.Doctor_ID == doctor_id {
 		err = database.DeleteArticle(c.Param("id"))
 		if err != nil {
@@ -253,6 +302,7 @@ func (controller *ArticleDoctorController) DeleteArticle(c echo.Context) error {
 				"message": err.Error(),
 			})
 		}
+		aws.DeleteObject(awsObj)
 		return c.JSON(http.StatusOK, map[string]string{
 			"message": "success delete article",
 		})
