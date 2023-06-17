@@ -46,6 +46,8 @@ func New() *echo.Echo {
 	eDoc.POST("/articles", articleDoctorController.AddArticle)
 	eDoc.PUT("/articles/:id", articleDoctorController.UpdateArticle)
 	eDoc.DELETE("/articles/:id", articleDoctorController.DeleteArticle)
+	eDoc.GET("/articles", articleDoctorController.GetArticles)
+	eDoc.GET("/articles/search", articleDoctorController.SearchArticles)
 	eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
 	eDoc.POST("/recipt", doctorRecipt.CreateRecipt)
 	eDoc.GET("/recipt/:id", doctorRecipt.GetDetailRecipt)

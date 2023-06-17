@@ -5,15 +5,22 @@ import (
 	"capstone/util"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/joho/godotenv"
 )
 
-func UploadFileS3(name string, file *multipart.FileHeader) (string, error) {
+func UploadFileS3(name string, file *multipart.FileHeader, folder string) (string, error) {
+	errenv := godotenv.Load()
+
+	if errenv != nil {
+		log.Fatal("error load env file")
+	}
 	src, err := file.Open()
 	if err != nil {
 		return "", err
@@ -37,8 +44,7 @@ func UploadFileS3(name string, file *multipart.FileHeader) (string, error) {
 	}
 
 	s3Client := s3.New(sess)
-	// change the path
-	s3Key := fmt.Sprintf("uploads/thumbnail/%s", file.Filename)
+	s3Key := fmt.Sprintf("uploads/%s/%s", folder ,file.Filename)
 	s3Bucket := os.Getenv("AWS_S3_BUCKET")
 	objectInput := &s3.PutObjectInput{
 		Bucket: aws.String(s3Bucket),
