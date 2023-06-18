@@ -55,6 +55,7 @@ func New() *echo.Echo {
 	eDoc.PUT("/articles/:id", articleDoctorController.UpdateArticle)
 	eDoc.DELETE("/articles/:id", articleDoctorController.DeleteArticle)
 	eDoc.GET("/articles", articleDoctorController.GetArticles)
+	eDoc.GET("/articles/:id", articleDoctorController.GetArticle)
 	eDoc.GET("/articles/search", articleDoctorController.SearchArticles)
 	eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
 	eDoc.POST("/recipt", doctorRecipt.CreateRecipt)
@@ -76,7 +77,8 @@ func New() *echo.Echo {
 	eAdm.GET("/doctor/:id", doctorAdminController.GetDoctor)
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
 	eAdm.DELETE("/doctor/:id", doctorAdminController.DeleteDoctor)
-
+	e.GET("/user/chat", controller.ConnectWSUser, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/doctor/chat", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 	doctorAllController := controller.DoctorAllController{}
 	e.GET("/doctors", doctorAllController.GetDoctors)
 

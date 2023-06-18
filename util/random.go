@@ -22,3 +22,23 @@ func GenerateRandomOrderNumber() string {
 
 	return orderNum
 }
+
+func SplitBy(s string, separator rune) []string {
+	var parts []string
+	var currentPart string
+
+	for _, char := range s {
+		if char == separator {
+			parts = append(parts, currentPart)
+			currentPart = ""
+		} else {
+			currentPart += string(char)
+		}
+	}
+
+	if len(currentPart) > 0 {
+		parts = append(parts, currentPart)
+	}
+
+	return parts
+}

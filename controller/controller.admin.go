@@ -13,7 +13,7 @@ import (
 )
 
 func LoginAdmin(c echo.Context) error {
-    var admin model.Admin
+  var admin model.Admin
 	c.Bind(&admin)
     if err := config.DB.Where("email = ? AND password = ?", admin.Email, admin.Password).First(&admin).Error; err != nil {
         if err == gorm.ErrRecordNotFound {
@@ -40,4 +40,3 @@ func LoginAdmin(c echo.Context) error {
         "token":   token,
     })
 }
-
