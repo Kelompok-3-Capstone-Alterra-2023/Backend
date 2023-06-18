@@ -3,7 +3,6 @@ package controller
 import (
 	"capstone/config"
 	"capstone/lib/email"
-	"capstone/middleware"
 	m "capstone/middleware"
 	"capstone/model"
 	"net/http"
@@ -18,7 +17,6 @@ func RegisterUser(c echo.Context) error {
 	var otp model.UserOTP
 
 	c.Bind(&otp)
-	c.Bind(&user)
 
 	if otp.OTP == "" {
 		otp.OTP = email.GenerateOTP()
@@ -48,7 +46,14 @@ func RegisterUser(c echo.Context) error {
 				"message": "OTP Wrong",
 			})
 		}
-		
+		user.Email = otp.Email
+		user.Password = otp.Password
+		user.Username = otp.Username
+		user.Fullname = otp.Fullname
+		user.Telp = otp.Telp
+		user.Alamat	= otp.Alamat
+		user.Gender = otp.Gender
+		user.BirthDate = c.FormValue("birthdate")
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
@@ -78,7 +83,7 @@ func LoginUser(c echo.Context) error {
 		})
 	}
 
-	token := middleware.CreateJWT(user)
+	token := m.CreateJWT(user)
 	return c.JSON(200, map[string]interface{}{
 		"message": "success login",
 		"token":   token,
@@ -87,7 +92,7 @@ func LoginUser(c echo.Context) error {
 
 func GetUser(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+	userID := int(m.ExtractUserIdToken(token))
 	var user model.User
 
 	config.DB.Where("id = ?", userID).First(&user)
@@ -97,7 +102,7 @@ func GetUser(c echo.Context) error {
 
 func DeleteUser(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+	userID := int(m.ExtractUserIdToken(token))
 
 	id := userID
 	result := config.DB.Delete(&model.User{}, id)
@@ -111,7 +116,7 @@ func DeleteUser(c echo.Context) error {
 
 func UpdateUser(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+	userID := int(m.ExtractUserIdToken(token))
 
 	id := userID
 	if userID == 0 {
