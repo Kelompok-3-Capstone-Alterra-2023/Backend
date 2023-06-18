@@ -18,6 +18,21 @@ import (
 	"capstone/middleware"
 )
 
+//for all
+type DoctorAllController struct{}
+
+func (u *DoctorAllController)GetDoctors(c echo.Context)error{
+	var doctors []model.Doctor
+	if err:=config.DB.Where("status=?", "approved").Find(&doctors).Error;err!=nil{
+		return echo.NewHTTPError(http.StatusBadRequest,err.Error())
+	}
+	return c.JSON(http.StatusOK,echo.Map{
+		"message":"success get all doctors",
+		"doctors":doctors,
+	})
+}
+
+
 // for admin
 type DoctorAdminController struct{}
 

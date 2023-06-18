@@ -3,11 +3,8 @@ package controller
 import (
 	"capstone/config"
 	"capstone/lib/email"
-	"capstone/middleware"
 	m "capstone/middleware"
 	"capstone/model"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -50,13 +47,13 @@ func RegisterUser(c echo.Context) error {
 			})
 		}
 		user.Email = otp.Email
-		user.Username = otp.Username
 		user.Password = otp.Password
-		user.Gender = otp.Gender
+		user.Username = otp.Username
+		user.Fullname = otp.Fullname
 		user.Telp = otp.Telp
-		user.Status_Online = otp.Status_Online
-		user.BirthDate = otp.BirthDate
-
+		user.Alamat	= otp.Alamat
+		user.Gender = otp.Gender
+		user.BirthDate = c.FormValue("birthdate")
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
@@ -86,7 +83,7 @@ func LoginUser(c echo.Context) error {
 		})
 	}
 
-	token := middleware.CreateJWT(user)
+	token := m.CreateJWT(user)
 	return c.JSON(200, map[string]interface{}{
 		"message": "success login",
 		"token":   token,
@@ -95,7 +92,7 @@ func LoginUser(c echo.Context) error {
 
 func GetUser(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+	userID := int(m.ExtractUserIdToken(token))
 	var user model.User
 
 	config.DB.Where("id = ?", userID).First(&user)
@@ -105,7 +102,7 @@ func GetUser(c echo.Context) error {
 
 func DeleteUser(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+	userID := int(m.ExtractUserIdToken(token))
 
 	id := userID
 	result := config.DB.Delete(&model.User{}, id)
@@ -119,7 +116,7 @@ func DeleteUser(c echo.Context) error {
 
 func UpdateUser(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+	userID := int(m.ExtractUserIdToken(token))
 
 	id := userID
 	if userID == 0 {
@@ -129,37 +126,7 @@ func UpdateUser(c echo.Context) error {
 	var user model.User
 	config.DB.Where("id = ?", id).First(&user)
 
-	json_map := make(map[string]interface{})
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	if json_map["email"] != "" {
-		user.Email = fmt.Sprintf("%v", json_map["email"])
-	}
-
-	if json_map["username"] != "" {
-		user.Username = fmt.Sprintf("%v", json_map["username"])
-	}
-
-	if json_map["password"] != "" {
-		user.Password = fmt.Sprintf("%v", json_map["password"])
-	}
-
-	if json_map["telpon"] != "" {
-		user.Telp = fmt.Sprintf("%v", json_map["telpon"])
-	}
-
-	if json_map["alamat"] != "" {
-		user.Alamat = fmt.Sprintf("%v", json_map["alamat"])
-	}
-
-	if json_map["gender"] != "" {
-		user.Gender = fmt.Sprintf("%v", json_map["gender"])
-	}
+	c.Bind(&user)
 
 	result := config.DB.Where("id = ?", id).Updates(&user)
 
