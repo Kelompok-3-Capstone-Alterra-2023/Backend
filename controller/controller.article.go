@@ -208,14 +208,6 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 	if image != nil {
 		date := time.Now().Format("2006-01-02")
 		awsObj = aws.CreateObject(date, "article", image)
-		// uri, err := awss3.UploadFileS3(date, image, "article")
-		// if err != nil {
-		// 	return c.JSON(http.StatusInternalServerError, map[string]string{
-		// 		"message": err.Error(),
-		// 	})
-		// }
-		// imageURI = uri
-
 	}
 
 	// get doctor id from jwt token
@@ -335,7 +327,49 @@ func (controller *ArticleDoctorController) GetArticles(c echo.Context) error {
 		"message": "success get articles",
 		"data":    articlesDoctor,
 	})
+}
 
+func (controller *ArticleDoctorController) GetArticle(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	doctorID, err := middleware.ExtractDocterIdToken(token)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"message": err.Error(),
+		})
+	}
+	doctor_id := uint(doctorID)
+
+	article, err := database.GetArticleById(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"message": err.Error(),
+		})
+	}
+
+	if article.Doctor_ID == doctor_id {
+		total_word := len(strings.Fields(article.Content))
+		est_read := math.Round(float64(total_word) / 200.0)
+		date := monday.Format(article.UpdatedAt, "02 January 2006", monday.LocaleIdID)
+		articleResponse := model.DetailArticleResponse{
+			ID:          article.ID,
+			Updated_At:  date,
+			Doctor_Name: article.Doctor.FullName,
+			Title:       article.Title,
+			Thumbnail:   article.Thumbnail,
+			Content:     article.Content,
+			Category:    article.Category,
+			Est_Read:    uint(est_read),
+		}
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success get article",
+			"data":    articleResponse,
+		})
+	}
+
+	return c.JSON(http.StatusUnauthorized, map[string]string{
+		"message": "unauthorized",
+	})
 }
 
 func (controller *ArticleDoctorController) SearchArticles(c echo.Context) error {
