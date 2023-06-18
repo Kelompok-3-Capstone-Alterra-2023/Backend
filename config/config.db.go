@@ -40,9 +40,13 @@ func Open() error {
 	return nil
 }
 
-
-func InitMigrate(){
-  	DB.AutoMigrate(model.Doctor{})
+func InitMigrate() {
+	//jangan dibalik
+	err := DB.SetupJoinTable(&model.Doctor{}, "ChatwithUser", &model.ChatRoom{})
+	if err != nil {
+		log.Println("failed when join table in table chat room")
+	}
+	DB.AutoMigrate(model.Doctor{})
 	DB.AutoMigrate(model.Article{})
 	DB.AutoMigrate(model.User{})
 	DB.AutoMigrate(model.UserOTP{})
@@ -50,4 +54,5 @@ func InitMigrate(){
 	DB.AutoMigrate(model.Recipt{})
 	DB.AutoMigrate(model.Drug{})
 	DB.AutoMigrate(model.Order{}, model.ConsultationSchedule{}, model.Payment{})
+	DB.AutoMigrate(model.Chat{})
 }
