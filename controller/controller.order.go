@@ -25,8 +25,8 @@ func (controller *OrderController) GetDetailDoctor(c echo.Context) error {
 		})
 	}
 
-	yearEntryWork, _ := strconv.Atoi(doctor.DateOfEntry)
-	yearOutWork, _ := strconv.Atoi(doctor.DateOfOut)
+	yearEntryWork, _ := strconv.Atoi(doctor.YearEntry)
+	yearOutWork, _ := strconv.Atoi(doctor.YearOut)
 	doctorExperience := uint(yearOutWork - yearEntryWork)
 	response := model.OrderDetailDoctorResponse{
 		ID:              doctor.ID,

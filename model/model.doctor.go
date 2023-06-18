@@ -17,13 +17,14 @@ type Doctor struct {
 	Religion        string  `gorm:"not null" json:"religion" form:"religion"`
 	Alumnus         string  `gorm:"not null" json:"alumnus" form:"alumnus"`
 	Jurusan         string  `gorm:"not null" json:"jurusan" form:"jurusan"`
+	WorkExperience  uint    `json:"work_experience" form:"work_experience"`
 	Work            string  `json:"work" form:"work"`
 	GradYear        string  `gorm:"not null" json:"grad_year" form:"grad_year"`
 	Alumnus2        string  `json:"alumnus2" form:"alumnus2"`
 	Jurusan2        string  `json:"jurusan2" form:"jurusan2"`
 	GradYear2       string  `json:"grad_year2" form:"grad_year2"`
-	DateOfEntry     string  `json:"date_of_entry" form:"date_of_entry" gorm:"type:date"`
-	DateOfOut       string  `json:"date_of_out" form:"date_of_out" gorm:"type:date"`
+	YearEntry    string  `json:"year_entry" form:"year_entry"`
+	YearOut      string `json:"year_out" form:"year_out"`
 	PracticeAddress string  `gorm:"not null" json:"practice_address" form:"practice_address"`
 	Price           float64 `json:"price" form:"price" gorm:"type:double"`
 	Balance         float64 `json:"balance" form:"balance" gorm:"type:double"`
