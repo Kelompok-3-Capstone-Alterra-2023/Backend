@@ -140,7 +140,7 @@ func UpdateUser(c echo.Context) error {
 func AddDoctorFavorite(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-	id := int(middleware.ExtractUserIdToken(token))
+	id := int(m.ExtractUserIdToken(token))
 
 
 	idDoctor, _ := strconv.Atoi(c.Param("id"))
@@ -164,7 +164,7 @@ func DeleteDoctorFavorite(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
 
-	id := int(middleware.ExtractUserIdToken(token))
+	id := int(m.ExtractUserIdToken(token))
 
 
 	idDoctor, _ := strconv.Atoi(c.Param("id"))
@@ -199,7 +199,7 @@ func GetDoctorFav(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
 
-	id := int(middleware.ExtractUserIdToken(token))
+	id := int(m.ExtractUserIdToken(token))
 
 
 	var user model.User
