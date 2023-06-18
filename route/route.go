@@ -4,15 +4,22 @@ import (
 	"capstone/constant"
 	"capstone/controller"
 	m "capstone/middleware"
+	"net/http"
 
 	jwtMid "github.com/labstack/echo-jwt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func New() *echo.Echo {
 	e := echo.New()
 	m.LogMiddleware(e)
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut},
+		AllowHeaders: []string{"*"},
+	}))
 
 	articleUserController := controller.ArticleUserController{}
 	doctorUserController := controller.DoctorUserController{}
@@ -47,6 +54,7 @@ func New() *echo.Echo {
 	eDoc.PUT("/articles/:id", articleDoctorController.UpdateArticle)
 	eDoc.DELETE("/articles/:id", articleDoctorController.DeleteArticle)
 	eDoc.GET("/articles", articleDoctorController.GetArticles)
+	eDoc.GET("/articles/:id", articleDoctorController.GetArticle)
 	eDoc.GET("/articles/search", articleDoctorController.SearchArticles)
 	eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
 	eDoc.POST("/recipt", doctorRecipt.CreateRecipt)
