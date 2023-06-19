@@ -44,6 +44,7 @@ func New() *echo.Echo {
 	eUser.POST("/doctor/:id/doctorfav", controller.AddDoctorFavorite)
 	eUser.DELETE("/doctor/:id/doctorfav", controller.DeleteDoctorFavorite)
 	eUser.GET("/doctors/doctorfav", controller.GetDoctorFav)
+	eUser.POST("/recipt", controller.GetDetailReciptUser)
 
 	articleDoctorController := controller.ArticleDoctorController{}
 	doctorDoctorController := controller.DoctorDoctorController{}

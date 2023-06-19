@@ -5,6 +5,9 @@ import (
 	"capstone/lib/email"
 	m "capstone/middleware"
 	"capstone/model"
+	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -51,7 +54,7 @@ func RegisterUser(c echo.Context) error {
 		user.Username = otp.Username
 		user.Fullname = otp.Fullname
 		user.Telp = otp.Telp
-		user.Alamat	= otp.Alamat
+		user.Alamat = otp.Alamat
 		user.Gender = otp.Gender
 		user.BirthDate = c.FormValue("birthdate")
 		if err := config.DB.Save(&user).Error; err != nil {
@@ -142,7 +145,6 @@ func AddDoctorFavorite(c echo.Context) error {
 
 	id := int(m.ExtractUserIdToken(token))
 
-
 	idDoctor, _ := strconv.Atoi(c.Param("id"))
 
 	var user model.User
@@ -163,9 +165,7 @@ func AddDoctorFavorite(c echo.Context) error {
 func DeleteDoctorFavorite(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-
 	id := int(m.ExtractUserIdToken(token))
-
 
 	idDoctor, _ := strconv.Atoi(c.Param("id"))
 
@@ -198,9 +198,7 @@ func DeleteDoctorFavorite(c echo.Context) error {
 func GetDoctorFav(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-
 	id := int(m.ExtractUserIdToken(token))
-
 
 	var user model.User
 
@@ -210,4 +208,31 @@ func GetDoctorFav(c echo.Context) error {
 		"user": user,
 	})
 
+}
+
+func GetDetailReciptUser(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+
+	id := int(m.ExtractUserIdToken(token))
+
+	json_map := make(map[string]interface{})
+	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"Massage": "json cant empty",
+		})
+	}
+
+	doctor_id, errconv := strconv.Atoi(fmt.Sprintf("%v", json_map["doctor_id"]))
+	if errconv != nil {
+		log.Println("error when convert doctor id in ft get recipt from user")
+	}
+
+	var recipt model.Recipt
+	config.DB.Model(&model.Recipt{}).Where("user_id = ? AND doctor_id = ?", id, doctor_id).Preload("Drugs").Find(&recipt)
+	// config.DB.Model(&model.Recipt{}).Preload("Drugs").Find(&recipt, reciptID).Omit("Doctor")
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get recipt",
+		"recip":   recipt,
+	})
 }

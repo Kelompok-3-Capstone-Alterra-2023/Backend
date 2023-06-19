@@ -3,6 +3,8 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -18,20 +20,19 @@ import (
 	"capstone/middleware"
 )
 
-//for all
+// for all
 type DoctorAllController struct{}
 
-func (u *DoctorAllController)GetDoctors(c echo.Context)error{
+func (u *DoctorAllController) GetDoctors(c echo.Context) error {
 	var doctors []model.Doctor
-	if err:=config.DB.Where("status=?", "approved").Find(&doctors).Error;err!=nil{
-		return echo.NewHTTPError(http.StatusBadRequest,err.Error())
+	if err := config.DB.Where("status=?", "approved").Find(&doctors).Error; err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	return c.JSON(http.StatusOK,echo.Map{
-		"message":"success get all doctors",
-		"doctors":doctors,
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "success get all doctors",
+		"doctors": doctors,
 	})
 }
-
 
 // for admin
 type DoctorAdminController struct{}
@@ -313,10 +314,10 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 	if err := config.DB.Where("status=?", "approved").Find(&doctors).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	for i:= range doctors {
+	for i := range doctors {
 		YearIn, _ := strconv.Atoi(doctors[i].YearEntry)
 		YearOuts, _ := strconv.Atoi(doctors[i].YearOut)
-		doctors[i].WorkExperience =  uint(YearOuts - YearIn)
+		doctors[i].WorkExperience = uint(YearOuts - YearIn)
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success get all doctors",
@@ -383,6 +384,11 @@ func (u *DoctorRecipt) CreateRecipt(c echo.Context) error {
 
 	recipt.DoctorID = uint(doctorID)
 	recipt.Drugs = drugs
+	user_id, errconv := strconv.Atoi(fmt.Sprintf("%v", doctorID))
+	if errconv != nil {
+		log.Println("error when convert user id in ft create recipt")
+	}
+	recipt.UserID = uint(user_id)
 
 	result := config.DB.Create(&recipt)
 
