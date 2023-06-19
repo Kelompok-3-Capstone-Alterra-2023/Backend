@@ -70,5 +70,5 @@ jobs:
           zone: 'asia-southeast2-a'
           user: 'rifkhihebat'
           ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
-          command:  |
+          script:  |
             sudo docker stop capstone-project;
