@@ -59,4 +59,4 @@ jobs:
 #         ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
 #         command: 'sudo docker container stop capstone-project'
       - name: 'ssh login'
-        run: 'ssh -i ${{secrets.GCP_SSH_PRIVATE_KEY}} rifkhihebat@${{HOST}} '
+        run: 'ssh -i ${{secrets.GCP_SSH_PRIVATE_KEY}} rifkhihebat@${{secrets.HOST}} '
