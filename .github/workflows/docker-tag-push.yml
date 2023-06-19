@@ -58,7 +58,7 @@ jobs:
         user: 'rifkhihebat'
         ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
         command:  |
-          sudo docker stop capstone-project
-          sudo docker container rm capstone-project
-          sudo docker image pull habiledgar123/capstone:main
-          sudo docker run --name capstone-project -v /home/rifkhihebat/:/app -d -p 8080:8080 habiledgar123/capstone:main
+          "sudo docker stop capstone-project"
+          "sudo docker container rm capstone-project"
+          "sudo docker image pull habiledgar123/capstone:main"
+          "sudo docker run --name capstone-project -v /home/rifkhihebat/:/app -d -p 8080:8080 habiledgar123/capstone:main"
