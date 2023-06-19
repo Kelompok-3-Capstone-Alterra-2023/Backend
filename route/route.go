@@ -20,7 +20,7 @@ func New() *echo.Echo {
 		AllowMethods: []string{http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut},
 		AllowHeaders: []string{"*"},
 	}))
-	e.Pre(middleware.HTTPSWWWRedirect())
+	e.Pre(middleware.HTTPSRedirect())
 
 	articleUserController := controller.ArticleUserController{}
 	doctorUserController := controller.DoctorUserController{}
