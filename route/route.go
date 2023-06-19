@@ -14,13 +14,13 @@ import (
 
 func New() *echo.Echo {
 	e := echo.New()
+	e.Pre(middleware.HTTPSRedirect())
 	m.LogMiddleware(e)
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{http.MethodGet, http.MethodDelete, http.MethodPost, http.MethodPut},
 		AllowHeaders: []string{"*"},
 	}))
-	e.Pre(middleware.HTTPSRedirect())
 
 	articleUserController := controller.ArticleUserController{}
 	doctorUserController := controller.DoctorUserController{}
