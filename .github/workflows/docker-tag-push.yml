@@ -45,18 +45,17 @@ jobs:
 #         tags: ${{ steps.meta.outputs.tags }}
 #         labels: ${{ steps.meta.outputs.labels }}
     
-#     - id: 'auth'
-#       uses: 'google-github-actions/auth@v0'
-#       with:
-#         credentials_json: '${{ secrets.GCE_SA_KEY }}'
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: '${{ secrets.GCE_SA_KEY }}'
 
-#     - id: 'compute-ssh'
-#       uses: 'google-github-actions/ssh-compute@v0'
-#       with:
-#         instance_name: 'instance-1'
-#         zone: 'asia-southeast2-a'
-#         user: 'rifkhihebat'
-#         ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
-#         command: 'sudo docker container stop capstone-project'
-      - name: 'ssh login'
-        run: 'ssh -i ${{secrets.GCP_SSH_PRIVATE_KEY}} rifkhihebat@${{secrets.HOST}} '
+    - id: 'compute-ssh'
+      uses: 'google-github-actions/ssh-compute@v0'
+      with:
+        instance_name: 'instance-1'
+        zone: 'asia-southeast2-a'
+        user: 'rifkhihebat'
+        ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
+        command: 'sudo docker container stop capstone-project'
+     
