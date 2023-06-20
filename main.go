@@ -16,5 +16,5 @@ func main() {
 
 	if err := e.StartTLS(":8080", "/app/host.cert", "/app/host.key"); err != http.ErrServerClosed {
 		log.Fatal(err)
-	  }
+	}
 }

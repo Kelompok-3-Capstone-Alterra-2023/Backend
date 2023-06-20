@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/midtrans/midtrans-go"
+	"github.com/midtrans/midtrans-go/iris"
 	"github.com/midtrans/midtrans-go/snap"
 )
 
@@ -46,4 +47,44 @@ func CreateSnapToken(request *model.MidtransRequest) (*snap.Response, error) {
 	}
 
 	return snapResp, nil
+}
+
+func Payout(data *model.Withdraw) (*iris.CreatePayoutResponse, *midtrans.Error) {
+	amount := fmt.Sprintf("%f", data.Total)
+	req := iris.CreatePayoutReq{
+		Payouts: []iris.CreatePayoutDetailReq{
+			{
+				BeneficiaryName:    data.AccountName,
+				BeneficiaryAccount: data.AccountNumber,
+				BeneficiaryBank:    data.Bank,
+				BeneficiaryEmail:   data.Doctor.Email,
+				Amount:             amount,
+				Notes:              data.Notes,
+			},
+		},
+	}
+
+	var i iris.Client
+	i.New(os.Getenv("MT_IRIS-API-KEY"), midtrans.Sandbox)
+
+	irisResponse, err := i.CreatePayout(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return irisResponse, nil
+}
+
+func ApprovePayout(ReferenceNumber string) error {
+	var i iris.Client
+	i.New(os.Getenv("MT_IRIS-API-KEY"), midtrans.Sandbox)
+	req := iris.ApprovePayoutReq{
+		ReferenceNo: []string{ReferenceNumber},
+	}
+	_, err := i.ApprovePayout(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
