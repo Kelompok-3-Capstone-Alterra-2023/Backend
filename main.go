@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-
 	config.Open()
 
 	e := route.New()

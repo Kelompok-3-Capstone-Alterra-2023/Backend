@@ -32,6 +32,21 @@ func (u *DoctorAllController)GetDoctors(c echo.Context)error{
 	})
 }
 
+func (u *DoctorAllController)GetDoctor(c echo.Context)error{
+	var doctor model.Doctor
+	id,err:=strconv.Atoi(c.Param("id"))	
+	if err!=nil{
+		return echo.NewHTTPError(http.StatusBadRequest,err.Error())
+	}
+	if err:=config.DB.Where("id=?",id).Find(&doctor).Error;err!=nil{
+		return echo.NewHTTPError(http.StatusBadRequest,err.Error())
+	}
+	return c.JSON(http.StatusOK,echo.Map{
+		"message":"success get doctor",
+		"doctor":doctor,
+	})
+}
+
 
 // for admin
 type DoctorAdminController struct{}
@@ -56,6 +71,8 @@ func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
 
 	// Jika dokter ditemukan
 	doctor.Status = "approved"
+	parsedTime, _ := time.Parse(time.RFC3339, doctor.BirthDate)
+	doctor.BirthDate= parsedTime.Format("2006-01-02")
 	if err := config.DB.Save(&doctor).Error; err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
 	}
