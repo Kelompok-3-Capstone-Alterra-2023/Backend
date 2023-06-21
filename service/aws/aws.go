@@ -20,7 +20,7 @@ type S3Object struct {
 	Key    string
 }
 
-func CreateObject(name, folder string, file *multipart.FileHeader) S3Object {
+func CreateObject(name, folder, tipe string, file *multipart.FileHeader) S3Object {
 	errenv := godotenv.Load()
 	if errenv != nil {
 		log.Fatal("error load env file")
@@ -28,7 +28,7 @@ func CreateObject(name, folder string, file *multipart.FileHeader) S3Object {
 
 	file.Filename = util.GenerateRandomString(name)
 	bucket := os.Getenv("AWS_S3_BUCKET")
-	key := fmt.Sprintf("uploads/%s/%s", folder, file.Filename)
+	key := fmt.Sprintf("uploads/%s/%s%s", folder, file.Filename, tipe)
 	object := S3Object{
 		Bucket: bucket,
 		Key:    key,
