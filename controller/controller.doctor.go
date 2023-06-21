@@ -359,7 +359,7 @@ func CreateDoctor(c echo.Context) error {
 
 		propic, err := c.FormFile("propic")
 		if propic != nil {
-			if err != nil  || (filepath.Ext(cv.Filename) != ".jpg" && filepath.Ext(cv.Filename) != ".png" && filepath.Ext(cv.Filename) != ".jpeg"){
+			if err != nil  || (filepath.Ext(propic.Filename) != ".jpg" && filepath.Ext(propic.Filename) != ".png" && filepath.Ext(propic.Filename) != ".jpeg"){
 				return c.JSON(500, map[string]interface{}{
 					"message": "File has to be .jpg, .png, or .jpeg",
 				})
