@@ -5,9 +5,6 @@ import (
 	"capstone/lib/email"
 	m "capstone/middleware"
 	"capstone/model"
-	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -215,24 +212,13 @@ func GetDetailReciptUser(c echo.Context) error {
 
 	id := int(m.ExtractUserIdToken(token))
 
-	json_map := make(map[string]interface{})
-	err := json.NewDecoder(c.Request().Body).Decode(&json_map)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"Massage": "json cant empty",
-		})
-	}
-
-	doctor_id, errconv := strconv.Atoi(fmt.Sprintf("%v", json_map["doctor_id"]))
-	if errconv != nil {
-		log.Println("error when convert doctor id in ft get recipt from user")
-	}
+	doctor_id := c.Param("id")
 
 	var recipt model.Recipt
 	config.DB.Model(&model.Recipt{}).Where("user_id = ? AND doctor_id = ?", id, doctor_id).Preload("Drugs").Find(&recipt)
 	// config.DB.Model(&model.Recipt{}).Preload("Drugs").Find(&recipt, reciptID).Omit("Doctor")
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success get recipt",
-		"recip":   recipt,
+		"recipt":  recipt,
 	})
 }
