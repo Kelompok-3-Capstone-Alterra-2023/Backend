@@ -55,6 +55,6 @@ func InitMigrate() {
 	DB.AutoMigrate(model.Drug{})
 	DB.AutoMigrate(model.Order{}, model.ConsultationSchedule{}, model.Payment{})
 	DB.AutoMigrate(model.Chat{})
-	DB.AutoMigrate(model.Withdraw{})
 	DB.AutoMigrate(model.ArticleComment{})
+	DB.AutoMigrate(model.Withdraw{}, model.ForgotPassword{})
 }

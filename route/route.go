@@ -4,7 +4,6 @@ import (
 	"capstone/constant"
 	"capstone/controller"
 	m "capstone/middleware"
-	jitsis "capstone/service/jitsi"
 	"net/http"
 
 	jwtMid "github.com/labstack/echo-jwt"
@@ -89,7 +88,8 @@ func New() *echo.Echo {
 	e.GET("/doctors", doctorAllController.GetDoctors)
 	e.GET("/doctor/:id", doctorAllController.GetDoctor)
 	e.POST("/order/notification", orderUserController.Notification)
-	e.POST("/slack/event", jitsis.CompleteChallenge)
+	e.POST("/forgotpassword", controller.ForgotPasswordUser)
+	e.PUT("/resetpassword/:hash", controller.UpdatePasswordUser)
 	eAdm.GET("/withdraw", withdraw.GetWithdraws)
 	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
 	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
