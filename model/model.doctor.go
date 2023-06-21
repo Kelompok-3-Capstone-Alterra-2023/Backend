@@ -33,6 +33,7 @@ type Doctor struct {
 	Ijazah          string  `gorm:"not null" json:"ijazah" form:"ijazah"`
 	STR             string  `gorm:"not null" json:"str" form:"str"`
 	SIP             string  `gorm:"not null" json:"sip" form:"sip"`
+	Propic		  string  `json:"propic" form:"propic"`
 	StatusOnline    bool    `json:"status_online" form:"status_online"`
 	Status          string  `json:"status" form:"status"`
 	STRNumber       string  `gorm:"not null" json:"str_number" form:"str_number"`

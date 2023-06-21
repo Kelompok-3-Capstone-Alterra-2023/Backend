@@ -45,15 +45,20 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
     
-    - name: Deploy
-      uses: appleboy/ssh-action@master
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v0'
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.PRIVATE_KEY }}
-        port: 22
-        script: |
-            sudo docker stop capstone-project
-            sudo docker container rm capstone-project
-            sudo docker image pull habiledgar123/capstone:main
-            sudo docker run --name capstone-project -v /home/ubuntu/:/app -d -p 8080:8080 habiledgar123/capstone:main
+        credentials_json: '${{ secrets.GCE_SA_KEY }}'
+
+    - id: 'compute-ssh'
+      uses: 'google-github-actions/ssh-compute@v0'
+      with:
+        instance_name: 'instance-1'
+        zone: 'asia-southeast2-a'
+        user: 'rifkhihebat'
+        ssh_private_key: '${{ secrets.GCP_SSH_PRIVATE_KEY }}'
+        command: |
+          sudo docker stop capstone-project
+          sudo docker container rm capstone-project
+          sudo docker image pull habiledgar123/capstone:main
+          sudo docker run -v /home/rifkhihebat/:/app --name capstone-project -d -p 8080:8080 habiledgar123/capstone:main

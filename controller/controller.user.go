@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -55,7 +56,8 @@ func RegisterUser(c echo.Context) error {
 		user.Telp = otp.Telp
 		user.Alamat = otp.Alamat
 		user.Gender = otp.Gender
-		user.BirthDate = c.FormValue("birthdate")
+		parsedTime, _ := time.Parse(time.RFC3339, otp.BirthDate)
+		user.BirthDate = parsedTime.Format("2006-01-02")
 		if err := config.DB.Save(&user).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to save password",
