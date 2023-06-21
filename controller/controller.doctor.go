@@ -311,7 +311,7 @@ func CreateDoctor(c echo.Context) error {
 
 	cv, err := c.FormFile("cv")
 	if cv != nil{
-		if err != nil  || filepath.Ext(cv.Filename) == ".pdf"{
+		if err != nil  || filepath.Ext(cv.Filename) != ".pdf"{
 			return c.JSON(500, map[string]interface{}{
 				"message": "File has to be .pdf",
 			})
