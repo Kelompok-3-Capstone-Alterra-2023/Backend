@@ -31,49 +31,72 @@ type Message struct {
 	From       int
 	To         int    `json:"to"`
 	Message    string `json:"message"`
-	RoleSender string `json:"role_sender"`
 }
 
-func ConnectWSUser(c echo.Context) error {
-	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	userID := int(middleware.ExtractUserIdToken(token))
+// func ConnectWSUser(c echo.Context) error {
+// 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+// 	userID := int(middleware.ExtractUserIdToken(token))
 
+// 	currentconn, err := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
+
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, "failure when connect websocket")
+// 	}
+
+// 	wsconnuser[userID] = currentconn
+
+// 	go handleIO(currentconn, wsconndoctor, userID)
+// 	return c.JSON(http.StatusAccepted, "success create connection")
+// }
+
+func ConnectWS(c echo.Context) error{
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	id, role:= middleware.ExtractToken(token)
+	
 	currentconn, err := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "failure when connect websocket")
 	}
 
-	wsconnuser[userID] = currentconn
+	if role == "doctor"{
+		wsconndoctor[int(id)] = currentconn
+		go handleIO(currentconn, wsconnuser, int(id), role)
+		return c.JSON(http.StatusAccepted, "success create connection")
+	} else if role == "user"{
+		wsconnuser[int(id)] = currentconn
+		go handleIO(currentconn, wsconndoctor, int(id), role)
+		return c.JSON(http.StatusAccepted, "success create connection")
+	}
+	return c.JSON(http.StatusBadRequest, "failure when connect websocket")
 
-	go handleIO(currentconn, wsconndoctor, userID)
-	return c.JSON(http.StatusAccepted, "success create connection")
 }
 
-func ConnectWSDoctor(c echo.Context) error {
-	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	doctorID, err := middleware.ExtractDocterIdToken(token)
 
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "failed when cast jwt",
-			"error":   err,
-		})
-	}
+// func ConnectWSDoctor(c echo.Context) error {
+// 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+// 	doctorID, err := middleware.ExtractDocterIdToken(token)
 
-	currentconn, err2 := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
+// 	if err != nil {
+// 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+// 			"message": "failed when cast jwt",
+// 			"error":   err,
+// 		})
+// 	}
 
-	if err2 != nil {
-		return c.JSON(http.StatusBadRequest, "failure when connect websocket")
-	}
+// 	currentconn, err2 := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
 
-	wsconndoctor[int(doctorID)] = currentconn
+// 	if err2 != nil {
+// 		return c.JSON(http.StatusBadRequest, "failure when connect websocket")
+// 	}
 
-	go handleIO(currentconn, wsconnuser, int(doctorID))
-	return c.JSON(http.StatusAccepted, "success create connection")
-}
+// 	wsconndoctor[int(doctorID)] = currentconn
 
-func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocket.Conn, from int) {
+// 	go handleIO(currentconn, wsconnuser, int(doctorID), role)
+// 	return c.JSON(http.StatusAccepted, "success create connection")
+// }
+
+func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocket.Conn, from int, roles string) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("error", fmt.Sprintf("%v", r))
@@ -81,26 +104,15 @@ func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocke
 	}()
 
 	chatroom := model.ChatRoom{}
-	// mess := Message{}
-	// chatroom := model.ChatRoom{}
-	// //to get chatroom id
-	// currentconn.ReadJSON(&mess)
-	// if mess.RoleSennder == "user" {
-	// 	config.DB.Model(&model.ChatRoom{}).Where("user_id = ? AND doctor_id = ?", mess.From, mess.To).Find(&chatroom)
-	// } else if mess.RoleSennder == "doctor" {
-	// 	config.DB.Model(&model.ChatRoom{}).Where("user_id = ? AND doctor_id = ?", mess.To, mess.From).Find(&chatroom)
-
-	// }
-
 	for {
 		message := Message{}
 
 		err := currentconn.ReadJSON(&message)
-		if message.RoleSender == "user" {
+		if roles== "user" {
 			message.From = from
 			chatroom.UserID = uint(message.From)
 			chatroom.DoctorID = uint(message.To)
-		} else if message.RoleSender == "doctor" {
+		} else if roles == "doctor" {
 			message.From = from
 			chatroom.DoctorID = uint(message.From)
 			chatroom.UserID = uint(message.To)
@@ -122,7 +134,7 @@ func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocke
 			return
 		}
 
-		errsave := saveMessage(message, chatroom)
+		errsave := saveMessage(message, chatroom, roles)
 		if !errsave {
 			log.Println("error when save chat", errsave)
 		}
@@ -162,11 +174,12 @@ func createChatRoom(user model.User, doctor model.Doctor) (model.ChatRoom, error
 	return Chatroom, nil
 }
 
-func saveMessage(message Message, chatroom model.ChatRoom) bool {
+func saveMessage(message Message, chatroom model.ChatRoom, roles string) bool {
 	chat := model.Chat{}
 	chat.UserIDnoFK = int(chatroom.UserID)
 	chat.DoctorIDnoFK = int(chatroom.DoctorID)
 	chat.Content = message.Message
+	chat.Sender = roles
 	result := config.DB.Create(&chat)
 
 	if result.RowsAffected < 1 {
