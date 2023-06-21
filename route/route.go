@@ -33,10 +33,11 @@ func New() *echo.Echo {
 	e.GET("/articles", articleUserController.GetArticles)
 	e.GET("/articles/:id", articleUserController.GetDetailArticle)
 	e.GET("/articles/search", articleUserController.SearchArticles)
+	e.POST("/articles/:id/comment", controller.AddComment)
 	eUser.GET("/doctors", doctorUserController.GetDoctors)
 	eUser.GET("/doctor/:id", orderUserController.GetDetailDoctor)
 	eUser.GET("/doctor/:id/schedule", orderUserController.CheckSchedule)
-	eUser.POST("/order/notification", orderUserController.Notification)
+	e.POST("/order/notification", orderUserController.Notification)
 	eUser.POST("/doctor/:id/booking", orderUserController.Order)
 	eUser.GET("/", controller.GetUser)
 	eUser.DELETE("/", controller.DeleteUser)
@@ -60,15 +61,18 @@ func New() *echo.Echo {
 	eDoc.GET("/articles/:id", articleDoctorController.GetArticle)
 	eDoc.GET("/articles/search", articleDoctorController.SearchArticles)
 	eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
+	eDoc.PUT("/", doctorDoctorController.UpdateDoctor)
 	eDoc.POST("/recipt", doctorRecipt.CreateRecipt)
 	eDoc.GET("/recipt/:id", doctorRecipt.GetDetailRecipt)
 	eDoc.GET("/drugs", doctorRecipt.GetAllDrugs)
+	withdraw := controller.WithdrawController{}
+	eDoc.POST("/withdraw", withdraw.RequestWithdraw)
 
 	articleAdminController := controller.ArticleAdminController{}
 	doctorAdminController := controller.DoctorAdminController{}
 	eAdm := e.Group("admin")
 	eAdm.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.POST("adm/login", controller.LoginAdmin)
+	e.POST("admin/login", controller.LoginAdmin)
 	eAdm.GET("/articles", articleAdminController.GetArticles)
 	eAdm.GET("/articles/:id", articleAdminController.GetDetailArticle)
 	eAdm.PUT("/articles/:id", articleAdminController.AcceptArticle)
@@ -79,10 +83,17 @@ func New() *echo.Echo {
 	eAdm.GET("/doctor/:id", doctorAdminController.GetDoctor)
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
 	eAdm.DELETE("/doctor/:id", doctorAdminController.DeleteDoctor)
-	e.GET("/user/chat", controller.ConnectWSUser, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.GET("/doctor/chat", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+
 	doctorAllController := controller.DoctorAllController{}
 	e.GET("/doctors", doctorAllController.GetDoctors)
+	e.GET("/doctor/:id", doctorAllController.GetDoctor)
+	e.POST("/order/notification", orderUserController.Notification)
+	e.POST("/forgotpassword", controller.ForgotPasswordUser)
+	e.PUT("/resetpassword/:hash", controller.UpdatePasswordUser)
+	eAdm.GET("/withdraw", withdraw.GetWithdraws)
+	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
+	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
 
 	return e
 }

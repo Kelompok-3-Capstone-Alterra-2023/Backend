@@ -31,7 +31,7 @@ func (controller *OrderController) GetDetailDoctor(c echo.Context) error {
 	response := model.OrderDetailDoctorResponse{
 		ID:              doctor.ID,
 		FullName:        doctor.FullName,
-		Photo:           doctor.Photo,
+		Propic:           doctor.Propic,
 		Specialist:      doctor.Specialist,
 		Description:     doctor.Description,
 		WorkExperience:  doctorExperience,
@@ -196,6 +196,29 @@ func (controller *OrderController) Notification(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"message": err.Error(),
 		})
+	}
+
+	if notification.PaymentStatus == "settlement" {
+		payment, doctorID, err := database.GetPaymentandDoctorID(notification.OrderID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+		doctor_id := strconv.Itoa(int(doctorID))
+		doctor, err := database.GetDoctorById(doctor_id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+		newBalance := doctor.Balance + payment.TotalPrice
+		err = database.UpdateBalanceDoctor(doctor_id, newBalance)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
 	}
 
 	err := database.UpdatePayment(&notification)

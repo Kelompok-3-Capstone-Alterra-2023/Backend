@@ -6,6 +6,39 @@ import (
 	"time"
 )
 
+func generateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func GeneratePass(length int) (string, error) {
+	const (
+		letterBytes  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		digitBytes   = "0123456789"
+		specialChars = "!@#$%^&*()"
+	)
+
+	charset := letterBytes + digitBytes + specialChars
+	charsetLen := len(charset)
+
+	randomBytes, err := generateRandomBytes(length)
+	if err != nil {
+		return "", err
+	}
+
+	password := make([]byte, length)
+	for i := 0; i < length; i++ {
+		password[i] = charset[int(randomBytes[i])%charsetLen]
+	}
+
+	return string(password), nil
+}
+
 func GenerateRandomString(name string) string {
 	rand.Seed(time.Now().Unix())
 	randomNum := rand.Intn(9999) + 1000

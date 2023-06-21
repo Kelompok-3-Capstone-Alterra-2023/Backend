@@ -15,14 +15,18 @@ func DeleteArticle(id string) error {
 	return nil
 }
 
-// func GetArticleThumbnail(id string) (string, error) {
-// 	var url string
-// 	if err := config.DB.Table("articles").Select("thumbnail").Where("id = ?", id).Scan(&url).Error; err != nil {
-// 		return "", err
-// 	}
+func SaveArticleComment(comment *model.ArticleComment) error {
+	return config.DB.Save(comment).Error
+}
 
-// 	return url, nil
-// }
+func GetArticleComment(id string) ([]model.ArticleCommentResponse, error) {
+	var articleComments []model.ArticleCommentResponse
+	if err := config.DB.Table("article_comments").Where("article_id = ?", id).Find(&articleComments).Error; err != nil {
+		return nil, err
+	}
+
+	return articleComments, nil
+}
 
 // DOCTOR
 func SaveArticle(article *model.Article) error {
