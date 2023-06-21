@@ -215,6 +215,22 @@ func GetDoctorFav(c echo.Context) error {
 
 }
 
+
+func GetDetailReciptUser(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+
+	id := int(m.ExtractUserIdToken(token))
+
+	doctor_id := c.Param("id")
+
+	var recipt model.Recipt
+	config.DB.Model(&model.Recipt{}).Where("user_id = ? AND doctor_id = ?", id, doctor_id).Preload("Drugs").Find(&recipt)
+	// config.DB.Model(&model.Recipt{}).Preload("Drugs").Find(&recipt, reciptID).Omit("Doctor")
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get recipt",
+		"recipt":  recipt,
+	})
+
 func ForgotPasswordUser(c echo.Context) error{
 	var user model.ForgotPassword
 	var users model.User

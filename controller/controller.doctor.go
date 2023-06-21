@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -35,6 +36,7 @@ func (u *DoctorAllController) GetDoctors(c echo.Context) error {
 		"doctors": doctors,
 	})
 }
+
 
 func (u *DoctorAllController) GetDoctor(c echo.Context) error {
 	var doctor model.Doctor
@@ -688,6 +690,11 @@ func (u *DoctorRecipt) CreateRecipt(c echo.Context) error {
 
 	recipt.DoctorID = uint(doctorID)
 	recipt.Drugs = drugs
+	user_id, errconv := strconv.Atoi(fmt.Sprintf("%v", doctorID))
+	if errconv != nil {
+		log.Println("error when convert user id in ft create recipt")
+	}
+	recipt.UserID = uint(user_id)
 
 	result := config.DB.Create(&recipt)
 
