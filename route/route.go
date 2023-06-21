@@ -33,6 +33,7 @@ func New() *echo.Echo {
 	e.GET("/articles", articleUserController.GetArticles)
 	e.GET("/articles/:id", articleUserController.GetDetailArticle)
 	e.GET("/articles/search", articleUserController.SearchArticles)
+	e.POST("/articles/:id/comment", controller.AddComment)
 	eUser.GET("/doctors", doctorUserController.GetDoctors)
 	eUser.GET("/doctor/:id", orderUserController.GetDetailDoctor)
 	eUser.GET("/doctor/:id/schedule", orderUserController.CheckSchedule)
@@ -44,6 +45,7 @@ func New() *echo.Echo {
 	eUser.POST("/doctor/:id/doctorfav", controller.AddDoctorFavorite)
 	eUser.DELETE("/doctor/:id/doctorfav", controller.DeleteDoctorFavorite)
 	eUser.GET("/doctors/doctorfav", controller.GetDoctorFav)
+	eUser.GET("/recipt/:id", controller.GetDetailReciptUser)
 
 	articleDoctorController := controller.ArticleDoctorController{}
 	doctorDoctorController := controller.DoctorDoctorController{}
