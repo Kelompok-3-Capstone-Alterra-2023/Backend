@@ -15,5 +15,5 @@ func main() {
 
 	if err := e.StartTLS(":8080", "/app/fullchain.pem", "/app/privkey.pem"); err != http.ErrServerClosed {
 		log.Fatal(err)
-	  }
+	}
 }

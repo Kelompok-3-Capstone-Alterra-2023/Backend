@@ -198,6 +198,29 @@ func (controller *OrderController) Notification(c echo.Context) error {
 		})
 	}
 
+	if notification.PaymentStatus == "settlement" {
+		payment, doctorID, err := database.GetPaymentandDoctorID(notification.OrderID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+		doctor_id := strconv.Itoa(int(doctorID))
+		doctor, err := database.GetDoctorById(doctor_id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+		newBalance := doctor.Balance + payment.TotalPrice
+		err = database.UpdateBalanceDoctor(doctor_id, newBalance)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+	}
+
 	err := database.UpdatePayment(&notification)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{

@@ -11,6 +11,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -153,7 +154,8 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 			})
 		}
 		date := time.Now().Format("2006-01-02")
-		awsObj = awss3.CreateObject(date, "article", image)
+		fileext := filepath.Ext(image.Filename)
+		awsObj = awss3.CreateObject(date, "article", fileext,image)
 	}
 
 	// get doctor id from jwt token
@@ -206,7 +208,8 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 	image, _ := c.FormFile("thumbnail")
 	if image != nil {
 		date := time.Now().Format("2006-01-02")
-		awsObj = awss3.CreateObject(date, "article", image)
+		fileext := filepath.Ext(image.Filename)
+		awsObj = awss3.CreateObject(date, "article", fileext ,image)
 	}
 
 	// get doctor id from jwt token
