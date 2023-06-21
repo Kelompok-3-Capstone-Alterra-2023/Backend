@@ -230,6 +230,7 @@ func GetDetailReciptUser(c echo.Context) error {
 		"message": "success get recipt",
 		"recipt":  recipt,
 	})
+}
 
 func ForgotPasswordUser(c echo.Context) error{
 	var user model.ForgotPassword
