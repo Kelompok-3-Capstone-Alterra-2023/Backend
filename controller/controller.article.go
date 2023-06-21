@@ -148,7 +148,7 @@ func (controller *ArticleDoctorController) AddArticle(c echo.Context) error {
 
 	image, err := c.FormFile("thumbnail")
 	if image != nil {
-		if err != nil {
+		if err != nil  || (filepath.Ext(image.Filename) != ".jpg" && filepath.Ext(image.Filename) != ".png" && filepath.Ext(image.Filename) != ".jpeg"){
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"message": err.Error(),
 			})
@@ -206,6 +206,11 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 
 	imageURI := article.Thumbnail
 	image, _ := c.FormFile("thumbnail")
+	if filepath.Ext(image.Filename) != ".jpg" && filepath.Ext(image.Filename) != ".png" && filepath.Ext(image.Filename) != ".jpeg"{
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"message": "file must be image",
+		})
+	}
 	if image != nil {
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(image.Filename)
