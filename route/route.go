@@ -36,6 +36,7 @@ func New() *echo.Echo {
 	eUser.GET("/doctors", doctorUserController.GetDoctors)
 	eUser.GET("/doctor/:id", orderUserController.GetDetailDoctor)
 	eUser.GET("/doctor/:id/schedule", orderUserController.CheckSchedule)
+	e.POST("/order/notification", orderUserController.Notification)
 	eUser.POST("/doctor/:id/booking", orderUserController.Order)
 	eUser.GET("/", controller.GetUser)
 	eUser.DELETE("/", controller.DeleteUser)
@@ -61,6 +62,8 @@ func New() *echo.Echo {
 	eDoc.POST("/recipt", doctorRecipt.CreateRecipt)
 	eDoc.GET("/recipt/:id", doctorRecipt.GetDetailRecipt)
 	eDoc.GET("/drugs", doctorRecipt.GetAllDrugs)
+	withdraw := controller.WithdrawController{}
+	eDoc.POST("/withdraw", withdraw.RequestWithdraw)
 
 	articleAdminController := controller.ArticleAdminController{}
 	doctorAdminController := controller.DoctorAdminController{}
@@ -84,6 +87,9 @@ func New() *echo.Echo {
 	e.GET("/doctors", doctorAllController.GetDoctors)
 	e.GET("/doctor/:id", doctorAllController.GetDoctor)
 	e.POST("/order/notification", orderUserController.Notification)
+	eAdm.GET("/withdraw", withdraw.GetWithdraws)
+	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
+	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
 
 	return e
 }

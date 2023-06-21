@@ -15,15 +15,6 @@ func DeleteArticle(id string) error {
 	return nil
 }
 
-// func GetArticleThumbnail(id string) (string, error) {
-// 	var url string
-// 	if err := config.DB.Table("articles").Select("thumbnail").Where("id = ?", id).Scan(&url).Error; err != nil {
-// 		return "", err
-// 	}
-
-// 	return url, nil
-// }
-
 // DOCTOR
 func SaveArticle(article *model.Article) error {
 	return config.DB.Save(article).Error
