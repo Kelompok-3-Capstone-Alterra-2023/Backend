@@ -44,20 +44,4 @@ require (
 	github.com/novalagung/gubrak/v2 v2.0.1
 )
 
-require (
-	github.com/aws/aws-sdk-go-v2 v1.2.0 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.0.2 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.0.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.1.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/dynamodbstreams v1.1.1 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.0.1 // indirect
-	github.com/aws/smithy-go v1.1.0 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
-	github.com/jitsi/jitsi-slack v0.2.1 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rs/xid v1.2.1 // indirect
-	github.com/rs/zerolog v1.20.0 // indirect
-	github.com/slack-go/slack v0.8.1 // indirect
-	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50 // indirect
-	gopkg.in/yaml.v2 v2.3.0 // indirect
-)
+require gopkg.in/yaml.v2 v2.3.0 // indirect

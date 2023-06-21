@@ -36,21 +36,21 @@ func (u *DoctorAllController) GetDoctors(c echo.Context) error {
 	})
 }
 
-
-func (u *DoctorAllController)GetDoctor(c echo.Context)error{
+func (u *DoctorAllController) GetDoctor(c echo.Context) error {
 	var doctor model.Doctor
-	id,err:=strconv.Atoi(c.Param("id"))	
-	if err!=nil{
-		return echo.NewHTTPError(http.StatusBadRequest,err.Error())
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	if err:=config.DB.Where("id=?",id).Find(&doctor).Error;err!=nil{
-		return echo.NewHTTPError(http.StatusBadRequest,err.Error())
+	if err := config.DB.Where("id=?", id).Find(&doctor).Error; err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	return c.JSON(http.StatusOK,echo.Map{
-		"message":"success get doctor",
-		"doctor":doctor,
+	return c.JSON(http.StatusOK, echo.Map{
+		"message": "success get doctor",
+		"doctor":  doctor,
 	})
 }
+
 // for admin
 type DoctorAdminController struct{}
 
@@ -76,7 +76,7 @@ func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
 	// Jika dokter ditemukan
 	doctor.Status = "approved"
 	parsedTime, _ := time.Parse(time.RFC3339, doctor.BirthDate)
-	doctor.BirthDate= parsedTime.Format("2006-01-02")
+	doctor.BirthDate = parsedTime.Format("2006-01-02")
 	if err := config.DB.Save(&doctor).Error; err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
 	}
@@ -154,7 +154,6 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 	data := echo.Map{
 		"message": "success update doctor",
 	}
-	
 
 	var doctor model.Doctor
 	id, err := strconv.Atoi(c.Param("id"))
@@ -176,7 +175,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 	}
 
 	cv, _ := c.FormFile("cv")
-	if cv!=nil{
+	if cv != nil {
 		// upload cv
 		if err != nil {
 			data["message"] = err.Error()
@@ -184,7 +183,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(cv.Filename)
-		awsObjCV := awss3.CreateObject(date, "cv",fileext, cv)
+		awsObjCV := awss3.CreateObject(date, "cv", fileext, cv)
 		cvurl, err = awss3.UploadFileS3(awsObjCV, cv)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -196,7 +195,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 	}
 
 	ijazah, _ := c.FormFile("ijazah")
-	if ijazah!=nil{
+	if ijazah != nil {
 		// upload ijazah
 		if err != nil {
 			data["message"] = err.Error()
@@ -204,7 +203,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(ijazah.Filename)
-		awsObjIjazah := awss3.CreateObject(date, "ijazah", fileext,ijazah)
+		awsObjIjazah := awss3.CreateObject(date, "ijazah", fileext, ijazah)
 		ijazahurl, err = awss3.UploadFileS3(awsObjIjazah, ijazah)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -216,7 +215,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 	}
 
 	sip, _ := c.FormFile("sip")
-	if sip!=nil{
+	if sip != nil {
 		// upload sip
 		if err != nil {
 			data["message"] = err.Error()
@@ -224,7 +223,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(sip.Filename)
-		awsObjSip := awss3.CreateObject(date, "sip",fileext, sip)
+		awsObjSip := awss3.CreateObject(date, "sip", fileext, sip)
 		sipurl, err = awss3.UploadFileS3(awsObjSip, sip)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -236,7 +235,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 	}
 
 	str, _ := c.FormFile("str")
-	if str!=nil{
+	if str != nil {
 		// upload str
 		if err != nil {
 			data["message"] = err.Error()
@@ -244,7 +243,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(str.Filename)
-		awsObjStr := awss3.CreateObject(date, "str",fileext, str)
+		awsObjStr := awss3.CreateObject(date, "str", fileext, str)
 		strurl, err = awss3.UploadFileS3(awsObjStr, str)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -256,7 +255,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 	}
 
 	propic, _ := c.FormFile("propic")
-	if propic!=nil{
+	if propic != nil {
 		// upload propic
 		if err != nil {
 			data["message"] = err.Error()
@@ -264,7 +263,7 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(propic.Filename)
-		awsObjPropic := awss3.CreateObject(date, "propic",fileext, propic)
+		awsObjPropic := awss3.CreateObject(date, "propic", fileext, propic)
 		propicurl, err = awss3.UploadFileS3(awsObjPropic, propic)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -274,9 +273,6 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 		}
 		doctor.Propic = propicurl
 	}
-
-
-	
 
 	// update doctor
 	if err := config.DB.Save(&doctor).Error; err != nil {
@@ -321,7 +317,7 @@ func CreateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(cv.Filename)
-		awsObjCV = awss3.CreateObject(date, "cv",fileext, cv)
+		awsObjCV = awss3.CreateObject(date, "cv", fileext, cv)
 	}
 
 	ijazah, err := c.FormFile("ijazah")
@@ -334,7 +330,7 @@ func CreateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(ijazah.Filename)
-		awsObjIjazah = awss3.CreateObject(date, "ijazah",fileext, ijazah)
+		awsObjIjazah = awss3.CreateObject(date, "ijazah", fileext, ijazah)
 	}
 
 	str, err := c.FormFile("str")
@@ -347,7 +343,7 @@ func CreateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(str.Filename)
-		awsObjStr = awss3.CreateObject(date, "str",fileext, str)
+		awsObjStr = awss3.CreateObject(date, "str", fileext, str)
 
 	}
 
@@ -361,7 +357,7 @@ func CreateDoctor(c echo.Context) error {
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(sip.Filename)
-		awsObjSip = awss3.CreateObject(date, "sip",fileext, sip)
+		awsObjSip = awss3.CreateObject(date, "sip", fileext, sip)
 	}
 
 		propic, err := c.FormFile("propic")
@@ -444,7 +440,7 @@ func LoginDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	c.Bind(&doctor)
 	if err := config.DB.Where("email = ? AND password = ? AND status = ?", doctor.Email, doctor.Password, "approved").First(&doctor).Error; err != nil {
-		if doctor.Password!="admin"{
+		if doctor.Password != "admin" {
 			return c.JSON(500, map[string]interface{}{
 				"message": "failed to login",
 				"error":   err.Error(),
@@ -461,6 +457,7 @@ func LoginDoctor(c echo.Context) error {
 	return c.JSON(200, map[string]interface{}{
 		"message": "success login",
 		"token":   token,
+		"doctor":  doctor,
 	})
 }
 
@@ -497,15 +494,15 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	}
 
 	cv, _ := c.FormFile("cv")
-	if cv!=nil{
+	if cv != nil {
 		// upload cv
 		if err != nil {
 			data["message"] = err.Error()
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		date := time.Now().Format("2006-01-02")
-		fileext:=filepath.Ext(cv.Filename)
-		awsObjCV := awss3.CreateObject(date, "cv",fileext, cv)
+		fileext := filepath.Ext(cv.Filename)
+		awsObjCV := awss3.CreateObject(date, "cv", fileext, cv)
 		cvurl, err = awss3.UploadFileS3(awsObjCV, cv)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -517,15 +514,15 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	}
 
 	ijazah, _ := c.FormFile("ijazah")
-	if ijazah!=nil{
+	if ijazah != nil {
 		// upload ijazah
 		if err != nil {
 			data["message"] = err.Error()
 			return c.JSON(http.StatusBadRequest, data)
 		}
-		fileext:=filepath.Ext(ijazah.Filename)
+		fileext := filepath.Ext(ijazah.Filename)
 		date := time.Now().Format("2006-01-02")
-		awsObjIjazah := awss3.CreateObject(date, "ijazah",fileext, ijazah)
+		awsObjIjazah := awss3.CreateObject(date, "ijazah", fileext, ijazah)
 		ijazahurl, err = awss3.UploadFileS3(awsObjIjazah, ijazah)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -537,15 +534,15 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	}
 
 	sip, _ := c.FormFile("sip")
-	if sip!=nil{
+	if sip != nil {
 		// upload sip
 		if err != nil {
 			data["message"] = err.Error()
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		date := time.Now().Format("2006-01-02")
-		fileext:=filepath.Ext(sip.Filename)
-		awsObjSip := awss3.CreateObject(date, "sip",fileext, sip)
+		fileext := filepath.Ext(sip.Filename)
+		awsObjSip := awss3.CreateObject(date, "sip", fileext, sip)
 		sipurl, err = awss3.UploadFileS3(awsObjSip, sip)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -557,15 +554,15 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	}
 
 	str, _ := c.FormFile("str")
-	if str!=nil{
+	if str != nil {
 		// upload str
 		if err != nil {
 			data["message"] = err.Error()
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		date := time.Now().Format("2006-01-02")
-		fileext:=filepath.Ext(str.Filename)
-		awsObjStr := awss3.CreateObject(date, "str",fileext, str)
+		fileext := filepath.Ext(str.Filename)
+		awsObjStr := awss3.CreateObject(date, "str", fileext, str)
 		strurl, err = awss3.UploadFileS3(awsObjStr, str)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -577,14 +574,14 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	}
 
 	propic, _ := c.FormFile("propic")
-	if propic!=nil{
+	if propic != nil {
 		if err != nil {
 			data["message"] = err.Error()
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		date := time.Now().Format("2006-01-02")
-		fileext:=filepath.Ext(propic.Filename)
-		awsObjPropic := awss3.CreateObject(date, "propic",fileext, propic)
+		fileext := filepath.Ext(propic.Filename)
+		awsObjPropic := awss3.CreateObject(date, "propic", fileext, propic)
 		propicurl, err = awss3.UploadFileS3(awsObjPropic, propic)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -595,7 +592,7 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 		doctor.Propic = propicurl
 	}
 	parsedTime, _ := time.Parse(time.RFC3339, doctor.BirthDate)
-	doctor.BirthDate= parsedTime.Format("2006-01-02")
+	doctor.BirthDate = parsedTime.Format("2006-01-02")
 	if err := config.DB.Save(&doctor).Error; err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
 	}
