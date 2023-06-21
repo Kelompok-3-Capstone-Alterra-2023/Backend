@@ -14,6 +14,7 @@ import (
 
 func New() *echo.Echo {
 	e := echo.New()
+	e.Pre(middleware.HTTPSRedirect())
 	m.LogMiddleware(e)
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
