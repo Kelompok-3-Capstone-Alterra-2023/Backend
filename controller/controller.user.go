@@ -45,7 +45,7 @@ func RegisterUser(c echo.Context) error {
 		})
 	} else {
 		if err := config.DB.Where("email = ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
-			if otp.OTP !="123123123"{
+			if otp.OTP != "123123123" {
 				return c.JSON(http.StatusBadRequest, map[string]interface{}{
 					"message": "OTP Wrong",
 				})
@@ -93,6 +93,7 @@ func LoginUser(c echo.Context) error {
 	return c.JSON(200, map[string]interface{}{
 		"message": "success login",
 		"token":   token,
+		"user":    user,
 	})
 }
 
