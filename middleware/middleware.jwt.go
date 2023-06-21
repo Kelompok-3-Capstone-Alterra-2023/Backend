@@ -24,6 +24,7 @@ type Jwtcustomclaims struct {
 	Alamat        string `json:"alamat" form:"alamat" gorm:"type:text"`
 	Gender        string `json:"gender" form:"gender" gorm:"type:varchar(2)"`
 	Status_Online bool   `json:"status_online" form:"status_online" gorm:"type:boolean"`
+	Role 		string `json:"role" form:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -45,6 +46,7 @@ func CreateJWT(user model.User) interface{} {
 	alamat := user.Alamat
 	gender := user.Gender
 	online := user.Status_Online
+	role :="user"
 
 	claims := &Jwtcustomclaims{
 		uint(id),
@@ -55,6 +57,7 @@ func CreateJWT(user model.User) interface{} {
 		alamat,
 		gender,
 		online,
+		role,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
 		},
@@ -72,6 +75,7 @@ func CreateJWT(user model.User) interface{} {
 
 func CreateDoctorJWT(doctorID uint) (string, error) {
 	claims := jwt.MapClaims{}
+	claims["role"]="doctor"
 	claims["authorized"] = true
 	claims["doctor_id"] = doctorID
 	claims["exp"] = time.Now().Add(time.Hour * 2).Unix()
@@ -114,3 +118,37 @@ func ExtractUserIdToken(token string) (float64) {
 	)
 	return tempToken.Claims.(jwt.MapClaims)["ID"].(float64)
 }
+
+func ExtractToken(token string) (float64, string) {
+	claims := jwt.MapClaims{}
+	tempToken, _:= jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+		return []byte("secret"), nil
+	},
+	)
+	if tempToken.Claims.(jwt.MapClaims)["role"]=="doctor"{
+		return tempToken.Claims.(jwt.MapClaims)["doctor_id"].(float64), "doctor"
+	}else if tempToken.Claims.(jwt.MapClaims)["role"]=="user"{
+		return tempToken.Claims.(jwt.MapClaims)["ID"].(float64), "user"
+	}
+	return 0, "none"
+}
+
+func CreateForgotPasswordJWT(user model.ForgotPassword)(string, error){
+	claims := jwt.MapClaims{}
+	claims["email"] = user.Email
+	claims["code"] = user.Code
+	claims["exp"] = time.Now().Add(time.Minute * 5).Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte("verysecret"))
+}
+
+func ExtractForgotPasswordToken(token string) (string, string) {
+	claims := jwt.MapClaims{}
+	tempToken, _:= jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+		return []byte("verysecret"), nil
+	},
+	)
+	return tempToken.Claims.(jwt.MapClaims)["email"].(string), tempToken.Claims.(jwt.MapClaims)["code"].(string)
+}
+
+

@@ -28,7 +28,6 @@ type Doctor struct {
 	PracticeAddress string  `gorm:"not null" json:"practice_address" form:"practice_address"`
 	Price           float64 `json:"price" form:"price" gorm:"type:double"`
 	Balance         float64 `json:"balance" form:"balance" gorm:"type:double"`
-	Photo           string  `json:"photo" form:"photo"`
 	CV              string  `gorm:"not null" json:"cv" form:"cv"`
 	Ijazah          string  `gorm:"not null" json:"ijazah" form:"ijazah"`
 	STR             string  `gorm:"not null" json:"str" form:"str"`
@@ -45,7 +44,7 @@ type Doctor struct {
 type OrderDetailDoctorResponse struct {
 	ID              uint    `json:"id" form:"id"`
 	FullName        string  `json:"full_name" form:"full_name"`
-	Photo           string  `json:"photo" form:"phot"`
+	Propic		  string  `json:"propic" form:"propic"`
 	Specialist      string  `json:"specialist" form:"specialist"`
 	Description     string  `json:"description" form:"description"`
 	WorkExperience  uint    `json:"work_experience" form:"work_experience"`
