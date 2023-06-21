@@ -15,6 +15,19 @@ func DeleteArticle(id string) error {
 	return nil
 }
 
+func SaveArticleComment(comment *model.ArticleComment) error {
+	return config.DB.Save(comment).Error
+}
+
+func GetArticleComment(id string) ([]model.ArticleCommentResponse, error) {
+	var articleComments []model.ArticleCommentResponse
+	if err := config.DB.Table("article_comments").Where("article_id = ?", id).Find(&articleComments).Error; err != nil {
+		return nil, err
+	}
+
+	return articleComments, nil
+}
+
 // DOCTOR
 func SaveArticle(article *model.Article) error {
 	return config.DB.Save(article).Error

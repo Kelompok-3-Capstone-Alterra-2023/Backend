@@ -25,21 +25,22 @@ type ArticleResponse struct {
 }
 
 type DetailArticleResponse struct {
-	ID         uint   `json:"id" form:"id"`
-	Updated_At string `json:"date" form:"date"`
-	// change to doctor_name
-	Doctor_Name string `json:"doctor_name" form:"doctor_name"`
-	Title       string `json:"title" form:"title"`
-	Thumbnail   string `json:"thumbnail" form:"thumbnail"`
-	Content     string `json:"content" form:"content"`
-	Category    string `json:"category" form:"category"`
-	Est_Read    uint   `json:"est_read" form:"est_read"`
+	ID          uint                     `json:"id" form:"id"`
+	Updated_At  string                   `json:"date" form:"date"`
+	Doctor_Name string                   `json:"doctor_name" form:"doctor_name"`
+	Title       string                   `json:"title" form:"title"`
+	Thumbnail   string                   `json:"thumbnail" form:"thumbnail"`
+	Content     string                   `json:"content" form:"content"`
+	Category    string                   `json:"category" form:"category"`
+	Est_Read    uint                     `json:"est_read" form:"est_read"`
+	Comments    []ArticleCommentResponse `json:"comments" form:"comments"`
 }
 
 type AllArticleResponse struct {
 	ID        uint   `json:"id" form:"id"`
 	Title     string `json:"title" form:"title"`
 	Thumbnail string `json:"thumbnail" form:"thumbnail"`
+	Content   string `json:"content" form:"content"`
 	Category  string `json:"category" form:"category"`
 }
 
