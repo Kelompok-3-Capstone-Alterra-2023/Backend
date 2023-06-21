@@ -364,26 +364,27 @@ func CreateDoctor(c echo.Context) error {
 		awsObjSip = awss3.CreateObject(date, "sip",fileext, sip)
 	}
 
-	propic, err := c.FormFile("propic")
-	if propic != nil {
+		propic, err := c.FormFile("propic")
+		if propic != nil {
+			if err != nil {
+				return c.JSON(500, map[string]interface{}{
+					"message": "failed to upload propic",
+					"error":   err.Error(),
+				})
+			}
+			date := time.Now().Format("2006-01-02")
+			fileext := filepath.Ext(propic.Filename)
+			awsObjPropic = awss3.CreateObject(date, "propic",fileext, propic)
+		propicurl, err = awss3.UploadFileS3(awsObjPropic, propic)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "failed to upload propic",
 				"error":   err.Error(),
 			})
 		}
-		date := time.Now().Format("2006-01-02")
-		fileext := filepath.Ext(propic.Filename)
-		awsObjPropic = awss3.CreateObject(date, "propic",fileext, propic)
+		doctor.Propic = propicurl
 	}
 
-	propicurl, err = awss3.UploadFileS3(awsObjPropic, propic)
-	if err != nil {
-		return c.JSON(500, map[string]interface{}{
-			"message": "failed to upload propic",
-			"error":   err.Error(),
-		})
-	}
 
 	cvurl, err = awss3.UploadFileS3(awsObjCV, cv)
 	if err != nil {
@@ -424,7 +425,6 @@ func CreateDoctor(c echo.Context) error {
 	doctor.Ijazah = ijazahurl
 	doctor.STR = strurl
 	doctor.SIP = sipurl
-	doctor.Propic = propicurl
 
 	doctor.Status = "notapproved"
 	if err := config.DB.Create(&doctor).Error; err != nil {
