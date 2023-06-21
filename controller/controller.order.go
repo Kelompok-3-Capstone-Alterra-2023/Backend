@@ -31,7 +31,7 @@ func (controller *OrderController) GetDetailDoctor(c echo.Context) error {
 	response := model.OrderDetailDoctorResponse{
 		ID:              doctor.ID,
 		FullName:        doctor.FullName,
-		Photo:           doctor.Photo,
+		Propic:           doctor.Propic,
 		Specialist:      doctor.Specialist,
 		Description:     doctor.Description,
 		WorkExperience:  doctorExperience,
