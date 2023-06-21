@@ -37,7 +37,6 @@ func (u *DoctorAllController) GetDoctors(c echo.Context) error {
 }
 
 
-=======
 func (u *DoctorAllController)GetDoctor(c echo.Context)error{
 	var doctor model.Doctor
 	id,err:=strconv.Atoi(c.Param("id"))	
