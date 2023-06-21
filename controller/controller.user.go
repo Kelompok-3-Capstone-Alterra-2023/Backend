@@ -5,6 +5,7 @@ import (
 	"capstone/lib/email"
 	m "capstone/middleware"
 	"capstone/model"
+	"capstone/util"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -210,6 +211,68 @@ func GetDoctorFav(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"user": user,
+	})
+
+}
+
+func ForgotPasswordUser(c echo.Context) error{
+	var user model.ForgotPassword
+	var users model.User
+	c.Bind(&user)
+	user.Code, _ = util.GeneratePass(8)
+	if err := config.DB.Where("email = ?", user.Email).First(&users).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "email not found",
+			"error":   err.Error(),
+		})
+	}
+	jwtForgot, err := m.CreateForgotPasswordJWT(user)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed to create jwt",
+			"error":   err.Error(),
+		})
+	}
+	linkURL := fmt.Sprintf("https://capstone-project:8080/resetpassword/%s", jwtForgot)
+	if err:= email.SendEmail(users.Username, user.Email, "Forgot Password", linkURL); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed to send email",
+			"error":   err.Error(),
+		})
+	}
+	if err := config.DB.Where("email=?", user.Email).Save(&user).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed to save password",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Check your email",
+	})
+}
+
+func UpdatePasswordUser(c echo.Context) error{
+	var user model.ForgotPassword
+	var users model.User
+	jwtToken := c.Param("hash")
+	email, code := m.ExtractForgotPasswordToken(jwtToken)
+	if err:=config.DB.Where("email = ? AND code = ?", email, code).First(&user).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed to find email",
+			"error":   err.Error(),
+		})
+	}
+	print()
+	c.Bind(&users)
+	if err := config.DB.Where("email = ?", email).Updates(&users).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed to update password",
+			"error":   err.Error(),
+		})
+	}
+	print(users.Username)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success update password",
 	})
 
 }
