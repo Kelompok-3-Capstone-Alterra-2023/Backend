@@ -2,6 +2,8 @@ package main
 
 import (
 	"capstone/config"
+	"log"
+	"net/http"
 
 	"capstone/route"
 )
@@ -12,5 +14,7 @@ func main() {
 
 	e := route.New()
 
-	e.Logger.Fatal(e.Start(":8080"))
+	if err := e.StartTLS(":8080", "/app/host.cert", "/app/host.key"); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 }

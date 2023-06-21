@@ -313,6 +313,11 @@ func (u *DoctorUserController) GetDoctors(c echo.Context) error {
 	if err := config.DB.Where("status=?", "approved").Find(&doctors).Error; err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+	for i:= range doctors {
+		YearIn, _ := strconv.Atoi(doctors[i].YearEntry)
+		YearOuts, _ := strconv.Atoi(doctors[i].YearOut)
+		doctors[i].WorkExperience =  uint(YearOuts - YearIn)
+	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success get all doctors",
 		"doctors": doctors,
