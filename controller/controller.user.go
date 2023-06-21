@@ -5,6 +5,7 @@ import (
 	"capstone/lib/email"
 	m "capstone/middleware"
 	"capstone/model"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -26,7 +27,8 @@ func RegisterUser(c echo.Context) error {
 				"message": "Email already registered",
 			})
 		}
-		if err := email.SendEmail(otp.Username, otp.Email, otp.OTP); err != nil {
+		emailContent := fmt.Sprintf("OTP: %s", otp.OTP)
+		if err := email.SendEmail(otp.Username, otp.Email, "Account Creation", emailContent); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to send email",
 				"error":   err.Error(),
@@ -52,7 +54,7 @@ func RegisterUser(c echo.Context) error {
 		user.Username = otp.Username
 		user.Fullname = otp.Fullname
 		user.Telp = otp.Telp
-		user.Alamat	= otp.Alamat
+		user.Alamat = otp.Alamat
 		user.Gender = otp.Gender
 		parsedTime, _ := time.Parse(time.RFC3339, otp.BirthDate)
 		user.BirthDate = parsedTime.Format("2006-01-02")
@@ -144,7 +146,6 @@ func AddDoctorFavorite(c echo.Context) error {
 
 	id := int(m.ExtractUserIdToken(token))
 
-
 	idDoctor, _ := strconv.Atoi(c.Param("id"))
 
 	var user model.User
@@ -165,9 +166,7 @@ func AddDoctorFavorite(c echo.Context) error {
 func DeleteDoctorFavorite(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-
 	id := int(m.ExtractUserIdToken(token))
-
 
 	idDoctor, _ := strconv.Atoi(c.Param("id"))
 
@@ -200,9 +199,7 @@ func DeleteDoctorFavorite(c echo.Context) error {
 func GetDoctorFav(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
-
 	id := int(m.ExtractUserIdToken(token))
-
 
 	var user model.User
 
