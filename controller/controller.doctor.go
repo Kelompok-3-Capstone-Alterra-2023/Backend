@@ -310,11 +310,10 @@ func CreateDoctor(c echo.Context) error {
 	c.Bind(&doctor)
 
 	cv, err := c.FormFile("cv")
-	if cv != nil {
-		if err != nil {
+	if cv != nil{
+		if err != nil  || filepath.Ext(cv.Filename) == ".pdf"{
 			return c.JSON(500, map[string]interface{}{
-				"message": "failed to upload cv",
-				"error":   err.Error(),
+				"message": "File has to be .pdf",
 			})
 		}
 		date := time.Now().Format("2006-01-02")
@@ -324,10 +323,9 @@ func CreateDoctor(c echo.Context) error {
 
 	ijazah, err := c.FormFile("ijazah")
 	if ijazah != nil {
-		if err != nil {
+		if err != nil || filepath.Ext(ijazah.Filename) != ".pdf"{
 			return c.JSON(500, map[string]interface{}{
-				"message": "failed to upload ijazah",
-				"error":   err.Error(),
+				"message": "File has to be .pdf",
 			})
 		}
 		date := time.Now().Format("2006-01-02")
@@ -337,24 +335,21 @@ func CreateDoctor(c echo.Context) error {
 
 	str, err := c.FormFile("str")
 	if str != nil {
-		if err != nil {
+		if err != nil || filepath.Ext(str.Filename) != ".pdf"{
 			return c.JSON(500, map[string]interface{}{
-				"message": "failed to upload str",
-				"error":   err.Error(),
+				"message": "File has to be .pdf",
 			})
 		}
 		date := time.Now().Format("2006-01-02")
 		fileext := filepath.Ext(str.Filename)
 		awsObjStr = awss3.CreateObject(date, "str", fileext, str)
-
 	}
 
 	sip, err := c.FormFile("sip")
 	if sip != nil {
-		if err != nil {
+		if err != nil || filepath.Ext(sip.Filename) != ".pdf"{
 			return c.JSON(500, map[string]interface{}{
-				"message": "failed to upload sip",
-				"error":   err.Error(),
+				"message": "File has to be .pdf",
 			})
 		}
 		date := time.Now().Format("2006-01-02")
@@ -364,10 +359,9 @@ func CreateDoctor(c echo.Context) error {
 
 		propic, err := c.FormFile("propic")
 		if propic != nil {
-			if err != nil {
+			if err != nil  || (filepath.Ext(cv.Filename) != ".jpg" && filepath.Ext(cv.Filename) != ".png" && filepath.Ext(cv.Filename) != ".jpeg"){
 				return c.JSON(500, map[string]interface{}{
-					"message": "failed to upload propic",
-					"error":   err.Error(),
+					"message": "File has to be .jpg, .png, or .jpeg",
 				})
 			}
 			date := time.Now().Format("2006-01-02")
@@ -497,9 +491,8 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 
 	cv, _ := c.FormFile("cv")
 	if cv != nil {
-		// upload cv
-		if err != nil {
-			data["message"] = err.Error()
+		if err != nil || filepath.Ext(cv.Filename) != ".pdf"{
+			data["message"] = "File must be .pdf"
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		date := time.Now().Format("2006-01-02")
@@ -518,8 +511,8 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	ijazah, _ := c.FormFile("ijazah")
 	if ijazah != nil {
 		// upload ijazah
-		if err != nil {
-			data["message"] = err.Error()
+		if err != nil || filepath.Ext(ijazah.Filename) != ".pdf"{
+			data["message"] = "File must be .pdf"
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		fileext := filepath.Ext(ijazah.Filename)
@@ -538,8 +531,8 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	sip, _ := c.FormFile("sip")
 	if sip != nil {
 		// upload sip
-		if err != nil {
-			data["message"] = err.Error()
+		if err != nil  || filepath.Ext(sip.Filename) != ".pdf"{
+			data["message"] = "File must be .pdf"
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		date := time.Now().Format("2006-01-02")
@@ -558,8 +551,8 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	str, _ := c.FormFile("str")
 	if str != nil {
 		// upload str
-		if err != nil {
-			data["message"] = err.Error()
+		if err != nil  || filepath.Ext(str.Filename) != ".pdf"{
+			data["message"] = "File must be .pdf"
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		date := time.Now().Format("2006-01-02")
@@ -577,8 +570,8 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 
 	propic, _ := c.FormFile("propic")
 	if propic != nil {
-		if err != nil {
-			data["message"] = err.Error()
+		if err != nil  || (filepath.Ext(propic.Filename) != ".jpg" && filepath.Ext(propic.Filename) != ".jpeg" && filepath.Ext(propic.Filename) != ".png"){
+			data["message"] = "File must be .jpg, .jpeg, or .png"
 			return c.JSON(http.StatusBadRequest, data)
 		}
 		date := time.Now().Format("2006-01-02")
