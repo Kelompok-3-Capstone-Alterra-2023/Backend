@@ -4,6 +4,7 @@ import (
 	"capstone/constant"
 	"capstone/controller"
 	m "capstone/middleware"
+	jitsis "capstone/service/jitsi"
 	"net/http"
 
 	jwtMid "github.com/labstack/echo-jwt"
@@ -81,13 +82,14 @@ func New() *echo.Echo {
 	eAdm.GET("/doctor/:id", doctorAdminController.GetDoctor)
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
 	eAdm.DELETE("/doctor/:id", doctorAdminController.DeleteDoctor)
-	e.GET("/user/chat", controller.ConnectWSUser, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.GET("/doctor/chat", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+
+	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 
 	doctorAllController := controller.DoctorAllController{}
 	e.GET("/doctors", doctorAllController.GetDoctors)
 	e.GET("/doctor/:id", doctorAllController.GetDoctor)
 	e.POST("/order/notification", orderUserController.Notification)
+	e.POST("/slack/event", jitsis.CompleteChallenge)
 	eAdm.GET("/withdraw", withdraw.GetWithdraws)
 	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
 	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
