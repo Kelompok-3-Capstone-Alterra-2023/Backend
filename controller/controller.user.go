@@ -46,7 +46,7 @@ func RegisterUser(c echo.Context) error {
 		})
 	} else {
 		if err := config.DB.Where("email = ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
-			if otp.OTP != "123123123" {
+			if otp.OTP !="12312312"{
 				return c.JSON(http.StatusBadRequest, map[string]interface{}{
 					"message": "OTP Wrong",
 				})
@@ -249,7 +249,7 @@ func ForgotPasswordUser(c echo.Context) error{
 			"error":   err.Error(),
 		})
 	}
-	linkURL := fmt.Sprintf("https://capstone-project:8080/resetpassword/%s", jwtForgot)
+	linkURL := fmt.Sprintf("https://capstone-project.duckdns.org:8080/resetpassword/%s", jwtForgot)
 	if err:= email.SendEmail(users.Username, user.Email, "Forgot Password", linkURL); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "failed to send email",
@@ -278,7 +278,6 @@ func UpdatePasswordUser(c echo.Context) error{
 			"error":   err.Error(),
 		})
 	}
-	print()
 	c.Bind(&users)
 	if err := config.DB.Where("email = ?", email).Updates(&users).Error; err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
