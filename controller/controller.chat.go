@@ -187,3 +187,24 @@ func saveMessage(message Message, chatroom model.ChatRoom, roles string) bool {
 	}
 	return true
 }
+
+func GetAllChatHistory(c echo.Context)error{
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	id, role:= middleware.ExtractToken(token)
+	idDoctorUser := c.Param("id")
+	var chat model.Chat
+
+	if role == "doctor"{
+		config.DB.Model(&model.Chat{}).Where("doctor_idno_fk = ? AND user_idno_fk = ?",id,idDoctorUser).Find(&chat)
+	}else if role == "user" {
+		config.DB.Model(&model.Chat{}).Where("doctor_idno_fk = ? AND user_idno_fk = ?",idDoctorUser,id).Find(&chat)
+	}else{
+		return c.JSON(http.StatusInternalServerError,"failed get role")
+	}
+
+	
+	return c.JSON(http.StatusOK,map[string]interface{}{
+		"message" :  "success get all chat", 
+		"chat" : chat,
+	})
+}
