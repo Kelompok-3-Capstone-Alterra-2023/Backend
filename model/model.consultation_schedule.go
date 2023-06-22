@@ -24,3 +24,11 @@ type ConsultationScheduleResponse struct {
 	DoctorID uint   `json:"doctor_id" form:"doctor_id"`
 	Schedule string `json:"schedule" form:"schedule"`
 }
+type Schedules struct {
+	ID         uint   `json:"id"`
+	UserName   string `json:"user_name"`
+	UserGender string `json:"user_gender"`
+	Method     string `json:"method"`
+	Status     string `json:"status"`
+	Date       string `json:"date"`
+}

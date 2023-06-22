@@ -5,6 +5,7 @@ import (
 	"capstone/lib/email"
 	m "capstone/middleware"
 	"capstone/model"
+	"capstone/service/database"
 	"capstone/util"
 	"fmt"
 	"net/http"
@@ -13,6 +14,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func RegisterUser(c echo.Context) error {
@@ -23,6 +26,7 @@ func RegisterUser(c echo.Context) error {
 
 	if otp.OTP == "" {
 		otp.OTP = email.GenerateOTP()
+		fmt.Println("otp", otp.OTP)
 		if err := config.DB.Where("email = ?", otp.Email).First(&user).Error; err == nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "Email already registered",
@@ -46,14 +50,21 @@ func RegisterUser(c echo.Context) error {
 		})
 	} else {
 		if err := config.DB.Where("email = ? AND otp = ?", otp.Email, otp.OTP).First(&otp).Error; err != nil {
-			if otp.OTP !="12312312"{
+			if otp.OTP != "12312312" {
 				return c.JSON(http.StatusBadRequest, map[string]interface{}{
 					"message": "OTP Wrong",
 				})
 			}
 		}
+		hashedPassword, err := util.HashPassword(otp.Password)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"message": "error",
+				"error":   err.Error(),
+			})
+		}
 		user.Email = otp.Email
-		user.Password = otp.Password
+		user.Password = hashedPassword
 		user.Username = otp.Username
 		user.Fullname = otp.Fullname
 		user.Telp = otp.Telp
@@ -81,12 +92,37 @@ func RegisterUser(c echo.Context) error {
 
 func LoginUser(c echo.Context) error {
 	var user model.User
-
 	c.Bind(&user)
 
-	if err := config.DB.Where("email = ? AND password = ?", user.Email, user.Password).First(&user).Error; err != nil {
+	hashedPass, err := database.GetPassword(user.Email, "users")
+	if err == gorm.ErrRecordNotFound {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "email or password wrong",
+		})
+	} else if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "failed to login",
+			"error":   err.Error(),
+		})
+	}
+	userLogin := hashedPass.(model.User)
+	err = util.CompareHashAndPassword(userLogin.Password, user.Password)
+	if err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "email or password wrong",
+			})
+
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "failed to login",
+			"error":   err.Error(),
+		})
+	}
+
+	if err := config.DB.Where("email = ? AND password = ?", user.Email, userLogin.Password).First(&user).Error; err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": err.Error(),
 		})
 	}
 
@@ -215,7 +251,6 @@ func GetDoctorFav(c echo.Context) error {
 
 }
 
-
 func GetDetailReciptUser(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 
@@ -232,7 +267,7 @@ func GetDetailReciptUser(c echo.Context) error {
 	})
 }
 
-func ForgotPasswordUser(c echo.Context) error{
+func ForgotPasswordUser(c echo.Context) error {
 	var user model.ForgotPassword
 	var users model.User
 	c.Bind(&user)
@@ -251,7 +286,7 @@ func ForgotPasswordUser(c echo.Context) error{
 		})
 	}
 	linkURL := fmt.Sprintf("https://capstone-project.duckdns.org:8080/resetpassword/%s", jwtForgot)
-	if err:= email.SendEmail(users.Username, user.Email, "Forgot Password", linkURL); err != nil {
+	if err := email.SendEmail(users.Username, user.Email, "Forgot Password", linkURL); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "failed to send email",
 			"error":   err.Error(),
@@ -267,7 +302,7 @@ func ForgotPasswordUser(c echo.Context) error{
 		"message": "Check your email",
 	})
 }
-
+y
 func UpdatePasswordUser(c echo.Context) error{
 	var forgot model.ForgotPassword
 	var users model.User

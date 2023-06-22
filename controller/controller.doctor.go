@@ -15,10 +15,12 @@ import (
 	"capstone/lib/email"
 	"capstone/model"
 	awss3 "capstone/service/aws"
+	"capstone/service/database"
 	"capstone/util"
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
 
 	"capstone/middleware"
 )
@@ -36,7 +38,6 @@ func (u *DoctorAllController) GetDoctors(c echo.Context) error {
 		"doctors": doctors,
 	})
 }
-
 
 func (u *DoctorAllController) GetDoctor(c echo.Context) error {
 	var doctor model.Doctor
@@ -74,7 +75,18 @@ func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve doctor's data")
 	}
 
-	doctor.Password, _ = util.GeneratePass(10)
+	password, err := util.GeneratePass(10)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": err.Error(),
+		})
+	}
+	doctor.Password, err = util.HashPassword(password)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": err.Error(),
+		})
+	}
 	// Jika dokter ditemukan
 	doctor.Status = "approved"
 	parsedTime, _ := time.Parse(time.RFC3339, doctor.BirthDate)
@@ -83,7 +95,7 @@ func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
 	}
 
-	emailContent := fmt.Sprintf("Email: %s\nTemporary Password: %s", doctor.Email, doctor.Password)
+	emailContent := fmt.Sprintf("Email: %s\nTemporary Password: %s", doctor.Email, password)
 	if err := email.SendEmail(doctor.FullName, doctor.Email, "Credential Prevent", emailContent); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "failed to send email",
@@ -310,8 +322,8 @@ func CreateDoctor(c echo.Context) error {
 	c.Bind(&doctor)
 
 	cv, err := c.FormFile("cv")
-	if cv != nil{
-		if err != nil  || filepath.Ext(cv.Filename) != ".pdf"{
+	if cv != nil {
+		if err != nil || filepath.Ext(cv.Filename) != ".pdf" {
 			return c.JSON(500, map[string]interface{}{
 				"message": "File has to be .pdf",
 			})
@@ -323,7 +335,7 @@ func CreateDoctor(c echo.Context) error {
 
 	ijazah, err := c.FormFile("ijazah")
 	if ijazah != nil {
-		if err != nil || filepath.Ext(ijazah.Filename) != ".pdf"{
+		if err != nil || filepath.Ext(ijazah.Filename) != ".pdf" {
 			return c.JSON(500, map[string]interface{}{
 				"message": "File has to be .pdf",
 			})
@@ -335,7 +347,7 @@ func CreateDoctor(c echo.Context) error {
 
 	str, err := c.FormFile("str")
 	if str != nil {
-		if err != nil || filepath.Ext(str.Filename) != ".pdf"{
+		if err != nil || filepath.Ext(str.Filename) != ".pdf" {
 			return c.JSON(500, map[string]interface{}{
 				"message": "File has to be .pdf",
 			})
@@ -347,7 +359,7 @@ func CreateDoctor(c echo.Context) error {
 
 	sip, err := c.FormFile("sip")
 	if sip != nil {
-		if err != nil || filepath.Ext(sip.Filename) != ".pdf"{
+		if err != nil || filepath.Ext(sip.Filename) != ".pdf" {
 			return c.JSON(500, map[string]interface{}{
 				"message": "File has to be .pdf",
 			})
@@ -357,16 +369,16 @@ func CreateDoctor(c echo.Context) error {
 		awsObjSip = awss3.CreateObject(date, "sip", fileext, sip)
 	}
 
-		propic, err := c.FormFile("propic")
-		if propic != nil {
-			if err != nil  || (filepath.Ext(propic.Filename) != ".jpg" && filepath.Ext(propic.Filename) != ".png" && filepath.Ext(propic.Filename) != ".jpeg"){
-				return c.JSON(500, map[string]interface{}{
-					"message": "File has to be .jpg, .png, or .jpeg",
-				})
-			}
-			date := time.Now().Format("2006-01-02")
-			fileext := filepath.Ext(propic.Filename)
-			awsObjPropic = awss3.CreateObject(date, "propic",fileext, propic)
+	propic, err := c.FormFile("propic")
+	if propic != nil {
+		if err != nil || (filepath.Ext(propic.Filename) != ".jpg" && filepath.Ext(propic.Filename) != ".png" && filepath.Ext(propic.Filename) != ".jpeg") {
+			return c.JSON(500, map[string]interface{}{
+				"message": "File has to be .jpg, .png, or .jpeg",
+			})
+		}
+		date := time.Now().Format("2006-01-02")
+		fileext := filepath.Ext(propic.Filename)
+		awsObjPropic = awss3.CreateObject(date, "propic", fileext, propic)
 		propicurl, err = awss3.UploadFileS3(awsObjPropic, propic)
 		if err != nil {
 			return c.JSON(500, map[string]interface{}{
@@ -376,7 +388,6 @@ func CreateDoctor(c echo.Context) error {
 		}
 		doctor.Propic = propicurl
 	}
-
 
 	cvurl, err = awss3.UploadFileS3(awsObjCV, cv)
 	if err != nil {
@@ -435,8 +446,35 @@ func CreateDoctor(c echo.Context) error {
 func LoginDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	c.Bind(&doctor)
-	if err := config.DB.Where("email = ? AND password = ? AND status = ?", doctor.Email, doctor.Password, "approved").First(&doctor).Error; err != nil {
-		if doctor.Password != "admin" {
+
+	hashedPass, err := database.GetPassword(doctor.Email, "doctors")
+	if err == gorm.ErrRecordNotFound {
+		return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+			"message": "invalid credentials",
+		})
+	} else if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "failed to login",
+			"error":   err.Error(),
+		})
+	}
+	doctorLogin := hashedPass.(model.Doctor)
+	err = util.CompareHashAndPassword(doctorLogin.Password, doctor.Password)
+	if err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+				"message": "invalid credentials",
+			})
+
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"message": "failed to login",
+			"error":   err.Error(),
+		})
+	}
+
+	if err := config.DB.Where("email = ? AND password = ? AND status = ?", doctor.Email, doctorLogin.Password, "approved").First(&doctor).Error; err != nil {
+		if err != nil {
 			return c.JSON(500, map[string]interface{}{
 				"message": "failed to login",
 				"error":   err.Error(),
@@ -491,7 +529,7 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 
 	cv, _ := c.FormFile("cv")
 	if cv != nil {
-		if err != nil || filepath.Ext(cv.Filename) != ".pdf"{
+		if err != nil || filepath.Ext(cv.Filename) != ".pdf" {
 			data["message"] = "File must be .pdf"
 			return c.JSON(http.StatusBadRequest, data)
 		}
@@ -511,7 +549,7 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	ijazah, _ := c.FormFile("ijazah")
 	if ijazah != nil {
 		// upload ijazah
-		if err != nil || filepath.Ext(ijazah.Filename) != ".pdf"{
+		if err != nil || filepath.Ext(ijazah.Filename) != ".pdf" {
 			data["message"] = "File must be .pdf"
 			return c.JSON(http.StatusBadRequest, data)
 		}
@@ -531,7 +569,7 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	sip, _ := c.FormFile("sip")
 	if sip != nil {
 		// upload sip
-		if err != nil  || filepath.Ext(sip.Filename) != ".pdf"{
+		if err != nil || filepath.Ext(sip.Filename) != ".pdf" {
 			data["message"] = "File must be .pdf"
 			return c.JSON(http.StatusBadRequest, data)
 		}
@@ -551,7 +589,7 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 	str, _ := c.FormFile("str")
 	if str != nil {
 		// upload str
-		if err != nil  || filepath.Ext(str.Filename) != ".pdf"{
+		if err != nil || filepath.Ext(str.Filename) != ".pdf" {
 			data["message"] = "File must be .pdf"
 			return c.JSON(http.StatusBadRequest, data)
 		}
@@ -570,7 +608,7 @@ func (d *DoctorDoctorController) UpdateDoctor(c echo.Context) error {
 
 	propic, _ := c.FormFile("propic")
 	if propic != nil {
-		if err != nil  || (filepath.Ext(propic.Filename) != ".jpg" && filepath.Ext(propic.Filename) != ".jpeg" && filepath.Ext(propic.Filename) != ".png"){
+		if err != nil || (filepath.Ext(propic.Filename) != ".jpg" && filepath.Ext(propic.Filename) != ".jpeg" && filepath.Ext(propic.Filename) != ".png") {
 			data["message"] = "File must be .jpg, .jpeg, or .png"
 			return c.JSON(http.StatusBadRequest, data)
 		}

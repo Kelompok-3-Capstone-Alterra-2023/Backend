@@ -6,6 +6,7 @@ import (
 	"capstone/service/database"
 	"capstone/service/midtrans"
 	"capstone/util"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -31,7 +32,7 @@ func (controller *OrderController) GetDetailDoctor(c echo.Context) error {
 	response := model.OrderDetailDoctorResponse{
 		ID:              doctor.ID,
 		FullName:        doctor.FullName,
-		Propic:           doctor.Propic,
+		Propic:          doctor.Propic,
 		Specialist:      doctor.Specialist,
 		Description:     doctor.Description,
 		WorkExperience:  doctorExperience,
@@ -144,7 +145,6 @@ func (controller *OrderController) Order(c echo.Context) error {
 		UserID:   uint(userID),
 		OrderID:  order.ID,
 		Method:   booking.Method,
-		Status:   "menunggu",
 		Schedule: schedule,
 	}
 	err = database.SaveSchedule(&consultationSchedule)
@@ -190,7 +190,42 @@ func (controller *OrderController) CheckSchedule(c echo.Context) error {
 	})
 }
 
-func (controller *OrderController) Notification(c echo.Context) error {
+func (controller *OrderController) GetSchedules(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	doctorID, err := middleware.ExtractDocterIdToken(token)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": err.Error(),
+		})
+	}
+	doctor_id := fmt.Sprintf("%f", doctorID)
+	schedules, err := database.GetScheduleByDoctor(doctor_id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": err.Error(),
+		})
+	}
+
+	var response []model.Schedules
+	for i := range schedules {
+		var schedule model.Schedules
+		date := schedules[i].Schedule.Format("02/01/2006 15:04")
+		schedule.ID = schedules[i].ID
+		schedule.Method = schedules[i].Method
+		schedule.Date = date
+		schedule.Status = schedules[i].Status
+		schedule.UserGender = schedules[i].User.Gender
+		schedule.UserName = schedules[i].User.Fullname
+		response = append(response, schedule)
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success",
+		"data":    response,
+	})
+}
+
+func (controller *OrderController) MidtransNotification(c echo.Context) error {
 	var notification model.Notification
 	if err := c.Bind(&notification); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
@@ -214,6 +249,13 @@ func (controller *OrderController) Notification(c echo.Context) error {
 		}
 		newBalance := doctor.Balance + payment.TotalPrice
 		err = database.UpdateBalanceDoctor(doctor_id, newBalance)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
+
+		err = database.UpdateStatusSchedule(strconv.Itoa(int(payment.OrderID)), "menunggu")
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"message": err.Error(),
