@@ -133,22 +133,23 @@ func ExtractToken(token string) (float64, string) {
 	return 0, "none"
 }
 
-func CreateForgotPasswordJWT(user model.ForgotPassword)(string, error){
+func CreateForgotPasswordJWT(user model.ForgotPassword, role string)(string, error){
 	claims := jwt.MapClaims{}
 	claims["email"] = user.Email
 	claims["code"] = user.Code
+	claims["role"] = role
 	claims["exp"] = time.Now().Add(time.Minute * 5).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte("verysecret"))
 }
 
-func ExtractForgotPasswordToken(token string) (string, string) {
+func ExtractForgotPasswordToken(token string) (string, string, string) {
 	claims := jwt.MapClaims{}
 	tempToken, _:= jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
 		return []byte("verysecret"), nil
 	},
 	)
-	return tempToken.Claims.(jwt.MapClaims)["email"].(string), tempToken.Claims.(jwt.MapClaims)["code"].(string)
+	return tempToken.Claims.(jwt.MapClaims)["email"].(string), tempToken.Claims.(jwt.MapClaims)["code"].(string), tempToken.Claims.(jwt.MapClaims)["role"].(string)
 }
 
 
