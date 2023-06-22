@@ -243,7 +243,7 @@ func ForgotPasswordUser(c echo.Context) error{
 			"error":   err.Error(),
 		})
 	}
-	jwtForgot, err := m.CreateForgotPasswordJWT(user)
+	jwtForgot, err := m.CreateForgotPasswordJWT(user, "role")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "failed to create jwt",
@@ -269,24 +269,40 @@ func ForgotPasswordUser(c echo.Context) error{
 }
 
 func UpdatePasswordUser(c echo.Context) error{
-	var user model.ForgotPassword
+	var forgot model.ForgotPassword
 	var users model.User
+	var doctors model.Doctor
 	jwtToken := c.Param("hash")
-	email, code := m.ExtractForgotPasswordToken(jwtToken)
-	if err:=config.DB.Where("email = ? AND code = ?", email, code).First(&user).Error; err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "failed to find email",
-			"error":   err.Error(),
-		})
+	email, code, role := m.ExtractForgotPasswordToken(jwtToken)
+	if role == "user"{
+		if err:=config.DB.Where("email = ? AND code = ?", email, code).First(&forgot).Error; err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to find email",
+				"error":   err.Error(),
+			})
+		}
+		c.Bind(&users)
+		if err := config.DB.Where("email = ?", email).Updates(&users).Error; err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to update password",
+				"error":   err.Error(),
+			})
+		}
+	}else if role == "doctor"{
+		if err:=config.DB.Where("email = ? AND code = ?", email, code).First(&forgot).Error; err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to find email",
+				"error":   err.Error(),
+			})
+		}
+		c.Bind(&doctors)
+		if err := config.DB.Where("email = ?", email).Updates(&doctors).Error; err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"message": "failed to update password",
+				"error":   err.Error(),
+			})
+		}
 	}
-	c.Bind(&users)
-	if err := config.DB.Where("email = ?", email).Updates(&users).Error; err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "failed to update password",
-			"error":   err.Error(),
-		})
-	}
-	print(users.Username)
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success update password",
 	})

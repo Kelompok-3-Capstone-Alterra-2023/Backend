@@ -206,15 +206,21 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 
 	imageURI := article.Thumbnail
 	image, _ := c.FormFile("thumbnail")
-	if filepath.Ext(image.Filename) != ".jpg" && filepath.Ext(image.Filename) != ".png" && filepath.Ext(image.Filename) != ".jpeg"{
-		return c.JSON(http.StatusBadRequest, map[string]string{
-			"message": "file must be image",
-		})
-	}
 	if image != nil {
-		date := time.Now().Format("2006-01-02")
-		fileext := filepath.Ext(image.Filename)
-		awsObj = awss3.CreateObject(date, "article", fileext, image)
+		if filepath.Ext(image.Filename) != ".jpg" && filepath.Ext(image.Filename) != ".png" && filepath.Ext(image.Filename) != ".jpeg"{
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"message": "file must be image",
+			})
+		}
+			date := time.Now().Format("2006-01-02")
+			fileext := filepath.Ext(image.Filename)
+			awsObj = awss3.CreateObject(date, "article", fileext, image)
+			imageURI, err = awss3.UploadFileS3(awsObj, image)
+			if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{
+				"message": err.Error(),
+			})
+		}
 	}
 
 	// get doctor id from jwt token
@@ -224,14 +230,6 @@ func (controller *ArticleDoctorController) UpdateArticle(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"message": err.Error(),
 		})
-	}
-	if awsObj.Key != "" {
-		imageURI, err = awss3.UploadFileS3(awsObj, image)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{
-				"message": err.Error(),
-			})
-		}
 	}
 
 	if article.Doctor_ID == uint(doctorID) {

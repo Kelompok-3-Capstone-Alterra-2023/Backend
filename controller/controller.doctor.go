@@ -699,3 +699,39 @@ func (u *DoctorRecipt) CreateRecipt(c echo.Context) error {
 		"message": "success create recipt",
 	})
 }
+
+func ForgotPasswordDoctor(c echo.Context) error{
+	var doctor model.ForgotPassword
+	var doctors model.Doctor
+	c.Bind(&doctor)
+	doctor.Code, _ = util.GeneratePass(8)
+	if err := config.DB.Where("email = ?", doctor.Email).First(&doctors).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "email not found",
+			"error":   err.Error(),
+		})
+	}
+	jwtForgot, err := middleware.CreateForgotPasswordJWT(doctor, "doctor")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed to create jwt",
+			"error":   err.Error(),
+		})
+	}
+	linkURL := fmt.Sprintf("https://capstone-project.duckdns.org:8080/resetpassword/%s", jwtForgot)
+	if err:= email.SendEmail(doctors.FullName, doctor.Email, "Forgot Password", linkURL); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed to send email",
+			"error":   err.Error(),
+		})
+	}
+	if err := config.DB.Where("email=?", doctor.Email).Save(&doctor).Error; err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed to save password",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "Check your email",
+	})
+}
