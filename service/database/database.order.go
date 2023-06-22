@@ -81,3 +81,20 @@ func GetPaymentandDoctorID(orderNumber string) (model.Payment, uint, error) {
 
 	return payment, order.DoctorID, nil
 }
+
+func UpdateStatusSchedule(order_id, status string) error {
+	if err := config.DB.Table("consultation_schedules").Where("order_id = ?", order_id).Update("status", status).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetScheduleByDoctor(doctor_id string) ([]model.ConsultationSchedule, error) {
+	var schedules []model.ConsultationSchedule
+	if err := config.DB.Preload("User").Where("doctor_id = ? AND status IS NOT NULL", doctor_id).Find(&schedules).Error; err != nil {
+		return nil, err
+	}
+
+	return schedules, nil
+}
