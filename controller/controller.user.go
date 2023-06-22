@@ -278,7 +278,7 @@ func ForgotPasswordUser(c echo.Context) error {
 			"error":   err.Error(),
 		})
 	}
-	jwtForgot, err := m.CreateForgotPasswordJWT(user, "role")
+	jwtForgot, err := m.CreateForgotPasswordJWT(user, "user")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "failed to create jwt",
