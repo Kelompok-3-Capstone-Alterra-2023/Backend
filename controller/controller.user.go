@@ -302,7 +302,7 @@ func ForgotPasswordUser(c echo.Context) error {
 		"message": "Check your email",
 	})
 }
-y
+
 func UpdatePasswordUser(c echo.Context) error{
 	var forgot model.ForgotPassword
 	var users model.User
