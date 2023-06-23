@@ -73,7 +73,7 @@ func ConnectWS(c echo.Context) error {
 }
 
 func ConnectWSDoctor(c echo.Context) error {
-	token := c.QueryParam("Authorization")
+	token := c.Param("Authorization")
 	doctorID, err := middleware.ExtractDocterIdToken(token)
 
 	if err != nil {
