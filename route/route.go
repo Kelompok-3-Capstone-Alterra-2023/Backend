@@ -37,8 +37,8 @@ func New() *echo.Echo {
 	eUser.GET("/doctors", doctorUserController.GetDoctors)
 	eUser.GET("/doctor/:id", orderUserController.GetDetailDoctor)
 	eUser.GET("/doctor/:id/schedule", orderUserController.CheckSchedule)
-	e.POST("/order/notification", orderUserController.MidtransNotification)
 	eUser.POST("/doctor/:id/booking", orderUserController.Order)
+	eUser.POST("/doctor/:id/order", orderUserController.OrderManual)
 	eUser.GET("/", controller.GetUser)
 	eUser.DELETE("/", controller.DeleteUser)
 	eUser.PUT("/", controller.UpdateUser)
@@ -86,6 +86,9 @@ func New() *echo.Echo {
 	eAdm.GET("/doctor/:id", doctorAdminController.GetDoctor)
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
 	eAdm.DELETE("/doctor/:id", doctorAdminController.DeleteDoctor)
+	eAdm.GET("/withdraw", withdraw.GetWithdraws)
+	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
+	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
 	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 	e.GET("/doctor/chat/:Authorization", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 	e.GET("/chathistory/:id",controller.GetAllChatHistory,jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
@@ -97,9 +100,6 @@ func New() *echo.Echo {
 	e.POST("/user/forgotpassword", controller.ForgotPasswordUser)
 	e.POST("/doctor/forgotpassword", controller.ForgotPasswordDoctor)
 	e.PUT("/resetpassword/:hash", controller.UpdatePasswordUser)
-	eAdm.GET("/withdraw", withdraw.GetWithdraws)
-	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
-	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
 
 	return e
 }

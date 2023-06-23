@@ -44,4 +44,7 @@ require (
 	github.com/novalagung/gubrak/v2 v2.0.1
 )
 
-require gopkg.in/yaml.v2 v2.3.0 // indirect
+require (
+	github.com/google/uuid v1.3.0 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
+)

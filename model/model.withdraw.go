@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Withdraw struct {
 	gorm.Model
 	ReferenceNumber string  `json:"reference_number"`
-	DoctorID        uint    `json:"doctor_id"`
+	DoctorID        uint    `json:"doctor_id" form:"doctor_id"`
 	Method          string  `json:"method"`
 	Bank            string  `json:"bank"`
 	AccountName     string  `json:"account_name"`
@@ -15,7 +15,7 @@ type Withdraw struct {
 	Total           float64 `json:"total" gorm:"type:double"`
 	Status          string  `json:"status"`
 	Notes           string  `json:"notes"`
-	Doctor          Doctor  `gorm:"foreignKey:DoctorID"`
+	Doctor          Doctor  `gorm:"foreignKey:DoctorID;-"`
 }
 
 type WithdrawResponse struct {
@@ -43,11 +43,18 @@ type WithdrawsResponse struct {
 	Date            string  `json:"date"`
 }
 
-// type PayoutRequest struct {
-// 	BeneficiaryName    string  `json:"beneficiary_name"`
-// 	BeneficiaryAccount string  `json:"beneficiary_account"`
-// 	BeneficiaryEmail   string  `json:"beneficiary_email"`
-// 	BeneficiaryBank    string  `json:"beneficiary_bank"`
-// 	Amount             float64 `json:"amount"`
-// 	Notes              string  `json:"notes"`
-// }
+type WithdrawForGet struct {
+	gorm.Model
+	ReferenceNumber string  `json:"reference_number"`
+	DoctorID        uint    `json:"doctor_id" form:"doctor_id"`
+	Method          string  `json:"method"`
+	Bank            string  `json:"bank"`
+	AccountName     string  `json:"account_name"`
+	AccountNumber   string  `json:"account_number"`
+	Amount          float64 `json:"amount" gorm:"type:double"`
+	TransactionFee  float64 `json:"transaction_fee" gorm:"type:double"`
+	Total           float64 `json:"total" gorm:"type:double"`
+	Status          string  `json:"status"`
+	Notes           string  `json:"notes"`
+	Doctor          Doctor  `gorm:"foreignKey:DoctorID"`
+}
