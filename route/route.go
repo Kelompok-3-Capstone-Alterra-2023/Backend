@@ -85,7 +85,8 @@ func New() *echo.Echo {
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
 	eAdm.DELETE("/doctor/:id", doctorAdminController.DeleteDoctor)
 	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.GET("/chathistory/:id",controller.GetAllChatHistory,jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/doctor/chat", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/chathistory/:id", controller.GetAllChatHistory, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 
 	doctorAllController := controller.DoctorAllController{}
 	e.GET("/doctors", doctorAllController.GetDoctors)
