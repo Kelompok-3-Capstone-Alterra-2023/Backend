@@ -78,6 +78,7 @@ func New() *echo.Echo {
 	eAdm.GET("/articles/:id", articleAdminController.GetDetailArticle)
 	eAdm.PUT("/articles/:id", articleAdminController.AcceptArticle)
 	eAdm.DELETE("/articles/:id", articleAdminController.DeleteArticle)
+	eAdm.GET("/articles/:status", articleAdminController.GetArticleByStatus)
 	eAdm.GET("/articles/search", articleAdminController.SearchArticles)
 	eAdm.PUT("/doctors/:id/approve", doctorAdminController.ApproveDoctor)
 	eAdm.GET("/doctors", doctorAdminController.GetDoctors)

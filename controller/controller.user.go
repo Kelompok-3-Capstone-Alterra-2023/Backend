@@ -18,7 +18,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func RegisterUser(c echo.Context) error {
+func  RegisterUser(c echo.Context) error {
 	var user model.User
 	var otp model.UserOTP
 
@@ -317,6 +317,8 @@ func UpdatePasswordUser(c echo.Context) error{
 			})
 		}
 		c.Bind(&users)
+		hashedpassword, _ := util.HashPassword(users.Password)
+		users.Password = hashedpassword
 		if err := config.DB.Where("email = ?", email).Updates(&users).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to update password",
@@ -331,6 +333,8 @@ func UpdatePasswordUser(c echo.Context) error{
 			})
 		}
 		c.Bind(&doctors)
+		hashedpassword, _ := util.HashPassword(doctors.Password)
+		doctors.Password = hashedpassword
 		if err := config.DB.Where("email = ?", email).Updates(&doctors).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to update password",
