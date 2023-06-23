@@ -106,7 +106,7 @@ func SendLinkById(id string, link string) (model.ConsultationSchedule, error) {
 		return schedule, err
 	}
 
-	if err := email.SendEmail(schedule.User.Email, schedule.User.Fullname, "Room call link",link); err != nil {
+	if err := email.SendEmail(schedule.User.Username, schedule.User.Email, "Room call link",link); err != nil {
 		return schedule, err
 	}
 
