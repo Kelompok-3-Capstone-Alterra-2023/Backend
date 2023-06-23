@@ -4,7 +4,6 @@ import (
 	"capstone/middleware"
 	"capstone/model"
 	"capstone/service/database"
-	"capstone/service/midtrans"
 	"capstone/util"
 	"net/http"
 	"strconv"
@@ -57,6 +56,7 @@ func (controller *WithdrawController) RequestWithdraw(c echo.Context) error {
 		ReferenceNumber: withdraw.ReferenceNumber,
 		Method:          withdraw.Method,
 		Bank:            withdraw.Bank,
+		AccountName:     withdraw.AccountName,
 		AccountNumber:   withdraw.AccountNumber,
 		Amount:          withdraw.Amount,
 		TransactionFee:  withdraw.TransactionFee,
@@ -71,7 +71,7 @@ func (controller *WithdrawController) RequestWithdraw(c echo.Context) error {
 }
 
 func (controller *WithdrawController) GetWithdraws(c echo.Context) error {
-	var withdraws []model.Withdraw
+	var withdraws []model.WithdrawForGet
 	var err error
 
 	if c.QueryParam("keyword") != "" {
@@ -132,14 +132,7 @@ func (controller *WithdrawController) ManageWithdraw(c echo.Context) error {
 			})
 		}
 
-		err = midtrans.ApprovePayout(withdraw.ReferenceNumber)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{
-				"message": err.Error(),
-			})
-		}
-
-		err = database.UpdateStatusWithdraw(c.Param("id"), "processed")
+		err = database.UpdateStatusWithdraw(c.Param("id"), "approved")
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"message": err.Error(),
