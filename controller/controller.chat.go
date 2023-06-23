@@ -28,9 +28,9 @@ var (
 )
 
 type Message struct {
-	From       int
-	To         int    `json:"to"`
-	Message    string `json:"message"`
+	From    int
+	To      int    `json:"to"`
+	Message string `json:"message"`
 }
 
 // func ConnectWSUser(c echo.Context) error {
@@ -49,21 +49,21 @@ type Message struct {
 // 	return c.JSON(http.StatusAccepted, "success create connection")
 // }
 
-func ConnectWS(c echo.Context) error{
+func ConnectWS(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	id, role:= middleware.ExtractToken(token)
-	
+	id, role := middleware.ExtractToken(token)
+
 	currentconn, err := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "failure when connect websocket")
 	}
 
-	if role == "doctor"{
+	if role == "doctor" {
 		wsconndoctor[int(id)] = currentconn
 		go handleIO(currentconn, wsconnuser, int(id), role)
 		return c.JSON(http.StatusAccepted, "success create connection")
-	} else if role == "user"{
+	} else if role == "user" {
 		wsconnuser[int(id)] = currentconn
 		go handleIO(currentconn, wsconndoctor, int(id), role)
 		return c.JSON(http.StatusAccepted, "success create connection")
@@ -71,7 +71,6 @@ func ConnectWS(c echo.Context) error{
 	return c.JSON(http.StatusBadRequest, "failure when connect websocket")
 
 }
-
 
 // func ConnectWSDoctor(c echo.Context) error {
 // 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
@@ -108,7 +107,7 @@ func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocke
 		message := Message{}
 
 		err := currentconn.ReadJSON(&message)
-		if roles== "user" {
+		if roles == "user" {
 			message.From = from
 			chatroom.UserID = uint(message.From)
 			chatroom.DoctorID = uint(message.To)
@@ -188,23 +187,22 @@ func saveMessage(message Message, chatroom model.ChatRoom, roles string) bool {
 	return true
 }
 
-func GetAllChatHistory(c echo.Context)error{
+func GetAllChatHistory(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	id, role:= middleware.ExtractToken(token)
+	id, role := middleware.ExtractToken(token)
 	idDoctorUser := c.Param("id")
 	var chat model.Chat
 
-	if role == "doctor"{
-		config.DB.Model(&model.Chat{}).Where("doctor_idno_fk = ? AND user_idno_fk = ?",id,idDoctorUser).Find(&chat)
-	}else if role == "user" {
-		config.DB.Model(&model.Chat{}).Where("doctor_idno_fk = ? AND user_idno_fk = ?",idDoctorUser,id).Find(&chat)
-	}else{
-		return c.JSON(http.StatusInternalServerError,"failed get role")
+	if role == "doctor" {
+		config.DB.Model(&model.Chat{}).Where("doctor_idno_fk = ? AND user_idno_fk = ?", id, idDoctorUser).Find(&chat)
+	} else if role == "user" {
+		config.DB.Model(&model.Chat{}).Where("doctor_idno_fk = ? AND user_idno_fk = ?", idDoctorUser, id).Find(&chat)
+	} else {
+		return c.JSON(http.StatusInternalServerError, "failed get role")
 	}
 
-	
-	return c.JSON(http.StatusOK,map[string]interface{}{
-		"message" :  "success get all chat", 
-		"chat" : chat,
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get all chat",
+		"chat":    chat,
 	})
 }

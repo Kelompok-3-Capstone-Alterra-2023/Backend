@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Withdraw struct {
 	gorm.Model
 	ReferenceNumber string  `json:"reference_number"`
-	DoctorID        uint    `json:"doctor_id"`
+	DoctorID        uint    `json:"doctor_id" form:"doctor_id"`
 	Method          string  `json:"method"`
 	Bank            string  `json:"bank"`
 	AccountName     string  `json:"account_name"`

@@ -70,16 +70,16 @@ func CheckOrderNumber(orderNumber string) error {
 	return errors.New("")
 }
 
-func GetPaymentandDoctorID(orderNumber string) (model.Payment, uint, error) {
+func GetPaymentandDoctorID(orderNumber string) (model.Payment, uint, uint, error) {
 	var order model.Order
 	var payment model.Payment
 
 	if err := config.DB.Preload("Doctor").Where("order_number = ?", orderNumber).First(&order).Error; err != nil {
-		return payment, 0, err
+		return payment, 0, 0, err
 	}
 	config.DB.Table("payments").Where("order_id = ?", order.ID).Scan(&payment)
 
-	return payment, order.DoctorID, nil
+	return payment, order.UserID, order.DoctorID, nil
 }
 
 func UpdateStatusSchedule(order_id, status string) error {

@@ -5,6 +5,7 @@ import (
 	"capstone/model"
 	"capstone/service/database"
 	"capstone/service/midtrans"
+	"capstone/util"
 	"net/http"
 	"strconv"
 	"strings"
@@ -44,20 +45,10 @@ func (controller *WithdrawController) RequestWithdraw(c echo.Context) error {
 	withdraw.Doctor.Email = doctor.Email
 	withdraw.DoctorID = uint(doctorID)
 	withdraw.Status = "queued"
-
-	irisResponse, err := midtrans.Payout(&withdraw)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, map[string]string{
-			"message": err.Error(),
-		})
-	}
-	for i := range irisResponse.Payouts {
-		withdraw.ReferenceNumber = irisResponse.Payouts[i].ReferenceNo
-	}
-
+	withdraw.ReferenceNumber = util.GenerateRandomReferenceNumber()
 	err = database.SaveWithdraw(&withdraw)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, map[string]string{
+		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"message": err.Error(),
 		})
 	}
@@ -175,32 +166,3 @@ func (controller *WithdrawController) ManageWithdraw(c echo.Context) error {
 		"message": "success manage withdraw",
 	})
 }
-
-// func (controller *WithdrawController) SearchWithdraw(c echo.Context) error {
-// 	withdraws, err := database.SearchWithdraw(c.QueryParam("keyword"))
-// 	if err != nil {
-// 		return c.JSON(http.StatusInternalServerError, map[string]string{
-// 			"message": err.Error(),
-// 		})
-// 	}
-
-// 	var respones []model.WithdrawsResponse
-// 	for i := range withdraws {
-// 		var withdraw model.WithdrawsResponse
-// 		withdraw.ReferenceNumber = withdraws[i].ReferenceNumber
-// 		withdraw.Method = withdraws[i].Method
-// 		withdraw.Bank = withdraws[i].Bank
-// 		withdraw. = withdraws[i]
-// 		withdraw.ReferenceNumber = withdraws[i]
-// 		withdraw.ReferenceNumber = withdraws[i]
-// 		withdraw.ReferenceNumber = withdraws[i]
-// 		withdraw.ReferenceNumber = withdraws[i]
-// 		withdraw.ReferenceNumber = withdraws[i]
-// 		withdraw.ReferenceNumber = withdraws[i]
-// 	}
-
-// 	return c.JSON(http.StatusOK, map[string]interface{}{
-// 		"message": "success",
-// 		"data":    withdraws,
-// 	})
-// }

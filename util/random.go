@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 func generateRandomBytes(n int) ([]byte, error) {
@@ -54,6 +56,11 @@ func GenerateRandomOrderNumber() string {
 	orderNum := currentTime.Format("02012006") + "-" + fmt.Sprintf("%d", randomNum)
 
 	return orderNum
+}
+
+func GenerateRandomReferenceNumber() string {
+	referenceNumber := uuid.New()
+	return referenceNumber.String()
 }
 
 func SplitBy(s string, separator rune) []string {

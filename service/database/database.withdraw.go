@@ -1,11 +1,9 @@
 package database
 
-
 import (
 	"capstone/config"
 	"capstone/model"
 )
-
 
 func UpdateBalanceDoctor(id string, newBalance float64) error {
 	if err := config.DB.Table("doctors").Where("id = ?", id).Update("balance", newBalance).Error; err != nil {
