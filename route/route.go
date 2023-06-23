@@ -85,13 +85,15 @@ func New() *echo.Echo {
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
 	eAdm.DELETE("/doctor/:id", doctorAdminController.DeleteDoctor)
 	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.GET("/chathistory/:id",controller.GetAllChatHistory,jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/doctor/chat/:Authorization", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/chathistory/:id", controller.GetAllChatHistory, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 
 	doctorAllController := controller.DoctorAllController{}
 	e.GET("/doctors", doctorAllController.GetDoctors)
 	e.GET("/doctor/:id", doctorAllController.GetDoctor)
 	e.POST("/order/notification", orderUserController.MidtransNotification)
-	e.POST("/forgotpassword", controller.ForgotPasswordUser)
+	e.POST("/user/forgotpassword", controller.ForgotPasswordUser)
+	e.POST("/doctor/forgotpassword", controller.ForgotPasswordDoctor)
 	e.PUT("/resetpassword/:hash", controller.UpdatePasswordUser)
 	eAdm.GET("/withdraw", withdraw.GetWithdraws)
 	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
