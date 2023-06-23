@@ -48,6 +48,7 @@ type AllArticleDoctorResponse struct {
 	ID        uint   `json:"id" form:"id"`
 	Title     string `json:"title" form:"title"`
 	Thumbnail string `json:"thumbnail" form:"thumbnail"`
+	Content   string `json:"content" form:"content"`
 	Category  string `json:"category" form:"category"`
 	Status    string `json:"status" form:"status"`
 }
@@ -55,7 +56,9 @@ type AllArticleDoctorResponse struct {
 type AllArticleAdminResponse struct {
 	ID         uint   `json:"id" form:"id"`
 	Full_Name  string `json:"doctor_name" form:"doctor_name"`
+	Content   string `json:"content" form:"content"`
 	Title      string `json:"title" form:"title"`
 	Category   string `json:"category" form:"category"`
 	Created_At string `json:"date" form:"date"`
+	Status    string `json:"status" form:"status"`
 }
