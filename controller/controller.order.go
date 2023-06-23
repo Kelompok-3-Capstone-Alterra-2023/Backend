@@ -172,6 +172,8 @@ func (controller *OrderController) Order(c echo.Context) error {
 
 }
 
+
+
 func (controller *OrderController) CheckSchedule(c echo.Context) error {
 	schedules, err := database.CheckScheduleByDoctorId(c.Param("id"))
 	if err != nil {
@@ -189,6 +191,17 @@ func (controller *OrderController) CheckSchedule(c echo.Context) error {
 		"data":    schedules,
 	})
 }
+
+func (controller *OrderController) SendLinkCall(c echo.Context)error{
+	scheduleID := c.Param("id")
+	link:= c.FormValue("link")
+	database.SendLinkById(scheduleID, link)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success send link",
+	})
+}
+
+
 
 func (controller *OrderController) GetSchedules(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
