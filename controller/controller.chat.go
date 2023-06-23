@@ -72,28 +72,28 @@ func ConnectWS(c echo.Context) error {
 
 }
 
-// func ConnectWSDoctor(c echo.Context) error {
-// 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-// 	doctorID, err := middleware.ExtractDocterIdToken(token)
+func ConnectWSDoctor(c echo.Context) error {
+	token := c.Param("Authorization")
+	doctorID, err := middleware.ExtractDocterIdToken(token)
 
-// 	if err != nil {
-// 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-// 			"message": "failed when cast jwt",
-// 			"error":   err,
-// 		})
-// 	}
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"message": "failed when cast jwt",
+			"error":   err,
+		})
+	}
 
-// 	currentconn, err2 := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
+	currentconn, err2 := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
 
-// 	if err2 != nil {
-// 		return c.JSON(http.StatusBadRequest, "failure when connect websocket")
-// 	}
+	if err2 != nil {
+		return c.JSON(http.StatusBadRequest, "failure when connect websocket")
+	}
 
-// 	wsconndoctor[int(doctorID)] = currentconn
+	wsconndoctor[int(doctorID)] = currentconn
 
-// 	go handleIO(currentconn, wsconnuser, int(doctorID), role)
-// 	return c.JSON(http.StatusAccepted, "success create connection")
-// }
+	go handleIO(currentconn, wsconnuser, int(doctorID), "doctor")
+	return c.JSON(http.StatusAccepted, "success create connection")
+}
 
 func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocket.Conn, from int, roles string) {
 	defer func() {

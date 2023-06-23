@@ -78,6 +78,7 @@ func New() *echo.Echo {
 	eAdm.GET("/articles/:id", articleAdminController.GetDetailArticle)
 	eAdm.PUT("/articles/:id", articleAdminController.AcceptArticle)
 	eAdm.DELETE("/articles/:id", articleAdminController.DeleteArticle)
+	eAdm.GET("/articles/:status", articleAdminController.GetArticleByStatus)
 	eAdm.GET("/articles/search", articleAdminController.SearchArticles)
 	eAdm.PUT("/doctors/:id/approve", doctorAdminController.ApproveDoctor)
 	eAdm.GET("/doctors", doctorAdminController.GetDoctors)
@@ -88,6 +89,7 @@ func New() *echo.Echo {
 	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
 	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
 	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/doctor/chat/:Authorization", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 	e.GET("/chathistory/:id", controller.GetAllChatHistory, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 
 	doctorAllController := controller.DoctorAllController{}

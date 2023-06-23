@@ -2,6 +2,7 @@ package database
 
 import (
 	"capstone/config"
+	"capstone/lib/email"
 	"capstone/model"
 	"errors"
 )
@@ -97,4 +98,17 @@ func GetScheduleByDoctor(doctor_id string) ([]model.ConsultationSchedule, error)
 	}
 
 	return schedules, nil
+}
+
+func SendLinkById(id string, link string) (model.ConsultationSchedule, error) {
+	var schedule model.ConsultationSchedule
+	if err := config.DB.Preload("User").Where("id = ?", id).First(&schedule).Error; err != nil {
+		return schedule, err
+	}
+
+	if err := email.SendEmail(schedule.User.Email, schedule.User.Fullname, "Room call link",link); err != nil {
+		return schedule, err
+	}
+
+	return schedule, nil
 }
