@@ -19,10 +19,11 @@ type Order struct {
 }
 
 type Booking struct {
-	DoctorID   uint    `json:"doctor_id" form:"doctor_id"`
-	UserID     uint    `json:"user_id" form:"user_id"`
-	Schedule   string  `json:"schedule" form:"schedule"`
-	Method     string  `json:"method" form:"method"`
-	ServiceFee float64 `json:"service_fee" form:"service_fee"`
-	Price      float64 `json:"price" form:"price"`
+	DoctorID           uint    `json:"doctor_id" form:"doctor_id"`
+	UserID             uint    `json:"user_id" form:"user_id"`
+	Schedule           string  `json:"schedule" form:"schedule"`
+	PaymentMethod      string  `json:"payment_method" form:"payment_method"`
+	ConsultationMethod string  `json:"method" form:"method"`
+	ServiceFee         float64 `json:"service_fee" form:"service_fee"`
+	Price              float64 `json:"price" form:"price"`
 }
