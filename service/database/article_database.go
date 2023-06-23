@@ -93,7 +93,7 @@ func UserSearchArticles(title string) ([]model.AllArticleResponse, error) {
 // ADMIN
 func AdminGetArticles() ([]model.AllArticleAdminResponse, error) {
 	var articles []model.AllArticleAdminResponse
-	if err := config.DB.Table("articles").Select("articles.id, articles.title, articles.category, articles.created_at, doctors.full_name").Joins("left join doctors on articles.doctor_id = doctors.id").Where("articles.status = \"ditinjau\" AND articles.deleted_at is null").Scan(&articles).Error; err != nil {
+	if err := config.DB.Table("articles").Select("articles.id, articles.title, articles.content ,articles.category, articles.created_at, doctors.full_name").Joins("left join doctors on articles.doctor_id = doctors.id").Where("articles.deleted_at is null").Scan(&articles).Error; err != nil {
 		return nil, err
 	}
 
@@ -107,6 +107,15 @@ func GetArticleById(id string) (model.Article, error) {
 	}
 
 	return article, nil
+}
+
+func GetArticleByStatus(status string) ([]model.AllArticleAdminResponse, error) {
+	var articles []model.AllArticleAdminResponse
+	if err := config.DB.Table("articles").Select("articles.id, articles.title, articles.content ,articles.category, articles.created_at, doctors.full_name").Joins("left join doctors on articles.doctor_id = doctors.id").Where("articles.status = ? AND articles.deleted_at is null", status).Scan(&articles).Error; err != nil {
+		return nil, err
+	}
+
+	return articles, nil
 }
 
 func UpdateStatusArticle(id, status string) error {

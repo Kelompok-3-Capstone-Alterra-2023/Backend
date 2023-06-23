@@ -42,6 +42,25 @@ func (controller *ArticleAdminController) GetArticles(c echo.Context) error {
 	})
 }
 
+func (controller *ArticleAdminController) GetArticleByStatus(c echo.Context) error{
+	articles, err := database.GetArticleByStatus(c.Param("status"))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{
+			"message": err.Error(),
+		})
+	}
+
+	for i := range articles {
+		date, _ := time.Parse("2006-01-02T15:04:05.999-07:00", articles[i].Created_At)
+		articles[i].Created_At = date.Format("02/01/2006")
+	}
+
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get articles",
+		"data":    articles,
+	})
+}
+
 func (controller *ArticleAdminController) GetDetailArticle(c echo.Context) error {
 	article, err := database.GetArticleById(c.Param("id"))
 	if err != nil {
