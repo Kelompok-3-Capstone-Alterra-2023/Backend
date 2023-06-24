@@ -27,6 +27,7 @@ type Doctor struct {
 	YearOut      string `json:"year_out" form:"year_out"`
 	PracticeAddress string  `gorm:"not null" json:"practice_address" form:"practice_address"`
 	Price           float64 `json:"price" form:"price" gorm:"type:double"`
+	Komisi int `json:"komisi" form:"komisi"`
 	Balance         float64 `json:"balance" form:"balance" gorm:"type:double"`
 	CV              string  `gorm:"not null" json:"cv" form:"cv"`
 	Ijazah          string  `gorm:"not null" json:"ijazah" form:"ijazah"`
@@ -53,4 +54,19 @@ type OrderDetailDoctorResponse struct {
 	PracticeAddress string  `json:"practice_address" form:"practice_address"`
 	STRNumber       string  `json:"str_number" form:"str_number"`
 	OnlineStatus    bool    `json:"status_online" form:"status_online"`
+}
+
+type OrderDetailAdminHistoryResponse struct {
+	gorm.Model
+	DoctorName 	string  `json:"doctor_name" form:"doctor_name"`
+	DoctorEmail string  `json:"doctor_email" form:"doctor_email"`
+	Komisi 		float64 `json:"komisi" form:"komisi"`
+	Tanggal 	string  `json:"tanggal" form:"tanggal"`
+}
+
+type KomisiDoctor struct{
+	ID uint `json:"id" form:"id"`
+	DoctorID uint `json:"doctor_id" form:"doctor_id"`
+	TotalPrice float64 `json:"total_price" form:"total_price"`
+	CreatedAt string `json:"created_at" form:"created_at"`
 }

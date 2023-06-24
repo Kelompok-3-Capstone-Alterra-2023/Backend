@@ -100,6 +100,7 @@ func (controller *WithdrawController) GetWithdraws(c echo.Context) error {
 	var response []model.WithdrawsResponse
 	for i := range withdraws {
 		var withdraw model.WithdrawsResponse
+		withdraw.Id = withdraws[i].ID
 		withdraw.ReferenceNumber = withdraws[i].ReferenceNumber
 		withdraw.Method = withdraws[i].Method
 		withdraw.Bank = withdraws[i].Bank

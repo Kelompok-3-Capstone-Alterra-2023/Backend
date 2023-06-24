@@ -329,6 +329,38 @@ func (a *DoctorAdminController) UpdateDoctor(c echo.Context) error {
 	return c.JSON(http.StatusOK, data)
 }
 
+func (a *DoctorAdminController)GetDoctorWithKomisi(c echo.Context) error {
+	var doctors []model.Doctor
+
+	if err:=config.DB.Where("status=?", "approved").Find(&doctors).Error; err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	_, month, _ := time.Now().Date()
+	dateOne := fmt.Sprintf("2023-%d-01", int(month))
+	dateTwo := fmt.Sprintf("2023-%d-31", int(month)+1)
+
+	var response []model.OrderDetailAdminHistoryResponse
+	for i := range doctors {
+		var history model.OrderDetailAdminHistoryResponse
+		var komisi []model.KomisiDoctor
+		history.DoctorName = doctors[i].FullName
+		history.DoctorEmail = doctors[i].Email
+		if err:= config.DB.Table("orders").Select("orders.id, orders.doctor_id, payments.total_price, payments.created_at").Joins("inner join payments on orders.id=payments.order_id").Where("transfer_status=? and doctor_id=? and created_at between ? and ?", "success", doctors[i].ID, dateOne, dateTwo).Scan(&komisi).Error; err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		for j := range komisi {
+			history.Komisi = history.Komisi + komisi[j].TotalPrice
+		}
+		history.Tanggal = doctors[i].CreatedAt.Format("2006-01-02")
+		response = append(response, history)
+	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success get all doctors",
+		"doctors": response,
+	})
+}
+
 // for doctor
 type DoctorDoctorController struct{}
 
