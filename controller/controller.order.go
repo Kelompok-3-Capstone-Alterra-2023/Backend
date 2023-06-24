@@ -161,8 +161,6 @@ func (controller *OrderController) Order(c echo.Context) error {
 
 }
 
-
-
 func (controller *OrderController) CheckSchedule(c echo.Context) error {
 	schedules, err := database.CheckScheduleByDoctorId(c.Param("id"))
 	if err != nil {
@@ -181,16 +179,14 @@ func (controller *OrderController) CheckSchedule(c echo.Context) error {
 	})
 }
 
-func (controller *OrderController) SendLinkCall(c echo.Context)error{
+func (controller *OrderController) SendLinkCall(c echo.Context) error {
 	scheduleID := c.Param("id")
-	link:= c.FormValue("link")
+	link := c.FormValue("link")
 	database.SendLinkById(scheduleID, link)
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success send link",
 	})
 }
-
-
 
 func (controller *OrderController) GetSchedules(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
@@ -217,7 +213,7 @@ func (controller *OrderController) GetSchedules(c echo.Context) error {
 		schedule.Date = date
 		schedule.Status = schedules[i].Status
 		schedule.UserGender = schedules[i].User.Gender
-		schedule.UserName = schedules[i].User.Fullname
+		schedule.UserName = schedules[i].User.Username
 		response = append(response, schedule)
 	}
 
@@ -348,7 +344,8 @@ func (controller *OrderController) OrderManual(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
-	newBalance := doctor.Balance + payment.Komisi
+
+	newBalance := doctor.Balance + booking.Price
 	err = database.UpdateBalanceDoctor(doctorID, newBalance)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{

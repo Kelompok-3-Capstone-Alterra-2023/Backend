@@ -19,6 +19,7 @@ type Withdraw struct {
 }
 
 type WithdrawResponse struct {
+	gorm.Model
 	ReferenceNumber string  `json:"reference_number"`
 	Method          string  `json:"method"`
 	Bank            string  `json:"bank"`

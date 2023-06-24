@@ -14,7 +14,7 @@ import (
 
 func New() *echo.Echo {
 	e := echo.New()
-	e.Pre(middleware.HTTPSRedirect())
+	// e.Pre(middleware.HTTPSRedirect())
 	m.LogMiddleware(e)
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
@@ -64,7 +64,7 @@ func New() *echo.Echo {
 	eDoc.POST("/schedules/:id", orderUserController.SendLinkCall)
 	eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
 	eDoc.PUT("/", doctorDoctorController.UpdateDoctor)
-	eDoc.POST("/recipt", doctorRecipt.CreateRecipt)
+	eDoc.POST("/recipt/:id", doctorRecipt.CreateRecipt)
 	eDoc.GET("/recipt/:id", doctorRecipt.GetDetailRecipt)
 	eDoc.GET("/drugs", doctorRecipt.GetAllDrugs)
 	withdraw := controller.WithdrawController{}
