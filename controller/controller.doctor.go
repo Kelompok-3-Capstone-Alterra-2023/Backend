@@ -506,7 +506,7 @@ func LoginDoctor(c echo.Context) error {
 	}
 
 	if err := config.DB.Where("email = ? AND password = ? AND status = ?", doctor.Email, doctorLogin.Password, "approved").First(&doctor).Error; err != nil {
-		if doctor.Password != "admin"{
+		if doctor.Password != "admin" {
 			return c.JSON(500, map[string]interface{}{
 				"message": "failed to login",
 				"error":   err.Error(),
@@ -753,7 +753,7 @@ func (u *DoctorRecipt) CreateRecipt(c echo.Context) error {
 
 	recipt.DoctorID = uint(doctorID)
 	recipt.Drugs = drugs
-	user_id, errconv := strconv.Atoi(fmt.Sprintf("%v", doctorID))
+	user_id, errconv := strconv.Atoi(c.Param("id"))
 	if errconv != nil {
 		log.Println("error when convert user id in ft create recipt")
 	}
@@ -770,7 +770,7 @@ func (u *DoctorRecipt) CreateRecipt(c echo.Context) error {
 	})
 }
 
-func ForgotPasswordDoctor(c echo.Context) error{
+func ForgotPasswordDoctor(c echo.Context) error {
 	var doctor model.ForgotPassword
 	var doctors model.Doctor
 	c.Bind(&doctor)
@@ -789,7 +789,7 @@ func ForgotPasswordDoctor(c echo.Context) error{
 		})
 	}
 	linkURL := fmt.Sprintf("https://capstone-project.duckdns.org:8080/resetpassword/%s", jwtForgot)
-	if err:= email.SendEmail(doctors.FullName, doctor.Email, "Forgot Password", linkURL); err != nil {
+	if err := email.SendEmail(doctors.FullName, doctor.Email, "Forgot Password", linkURL); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "failed to send email",
 			"error":   err.Error(),
