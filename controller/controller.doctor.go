@@ -344,6 +344,7 @@ func (a *DoctorAdminController)GetDoctorWithKomisi(c echo.Context) error {
 	for i := range doctors {
 		var history model.OrderDetailAdminHistoryResponse
 		var komisi []model.KomisiDoctor
+		history.Id = uint(i+1)
 		history.DoctorName = doctors[i].FullName
 		history.DoctorEmail = doctors[i].Email
 		if err:= config.DB.Table("orders").Select("orders.id, orders.doctor_id, payments.total_price, payments.created_at").Joins("inner join payments on orders.id=payments.order_id").Where("transfer_status=? and doctor_id=? and payments.created_at between ? and ?", "success", doctors[i].ID, dateOne, dateTwo).Scan(&komisi).Error; err != nil {

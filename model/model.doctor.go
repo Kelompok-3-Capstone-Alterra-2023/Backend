@@ -57,7 +57,7 @@ type OrderDetailDoctorResponse struct {
 }
 
 type OrderDetailAdminHistoryResponse struct {
-	gorm.Model
+	Id 			uint    `json:"id" form:"id"`
 	DoctorName 	string  `json:"doctor_name" form:"doctor_name"`
 	DoctorEmail string  `json:"doctor_email" form:"doctor_email"`
 	Komisi 		float64 `json:"komisi" form:"komisi"`
