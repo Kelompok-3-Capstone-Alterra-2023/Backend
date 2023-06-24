@@ -213,7 +213,7 @@ func (controller *OrderController) GetSchedules(c echo.Context) error {
 		schedule.Date = date
 		schedule.Status = schedules[i].Status
 		schedule.UserGender = schedules[i].User.Gender
-		schedule.UserName = schedules[i].User.Fullname
+		schedule.UserName = schedules[i].User.Username
 		response = append(response, schedule)
 	}
 
