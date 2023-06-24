@@ -63,7 +63,7 @@ func New() *echo.Echo {
 	eDoc.GET("/:id/schedules", orderUserController.GetSchedules)
 	eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
 	eDoc.PUT("/", doctorDoctorController.UpdateDoctor)
-	eDoc.POST("/recipt", doctorRecipt.CreateRecipt)
+	eDoc.POST("/recipt/:id", doctorRecipt.CreateRecipt)
 	eDoc.GET("/recipt/:id", doctorRecipt.GetDetailRecipt)
 	eDoc.GET("/drugs", doctorRecipt.GetAllDrugs)
 	withdraw := controller.WithdrawController{}
