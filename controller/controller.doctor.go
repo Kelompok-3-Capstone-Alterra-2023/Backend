@@ -58,6 +58,33 @@ func (u *DoctorAllController) GetDoctor(c echo.Context) error {
 type DoctorAdminController struct{}
 
 // Handler untuk menyetujui pendaftaran dokter
+func (a *DoctorAdminController) RejectDoctor(c echo.Context) error {
+	var doctor model.Doctor
+
+	// Cari dokter berdasarkan ID
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "invalid doctor ID")
+	}
+
+	if err := config.DB.First(&doctor, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return echo.NewHTTPError(http.StatusNotFound, "doctor not found")
+		}
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve doctor's data")
+	}
+
+	// Jika dokter ditemukan
+	doctor.Status = "rejected"
+	parsedTime, _ := time.Parse(time.RFC3339, doctor.BirthDate)
+	doctor.BirthDate = parsedTime.Format("2006-01-02")
+	if err := config.DB.Save(&doctor).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
+	}
+
+	return c.JSON(http.StatusOK, "doctor registration rejected")
+}
+
 func (a *DoctorAdminController) ApproveDoctor(c echo.Context) error {
 	var doctor model.Doctor
 	c.Bind(&doctor)
