@@ -153,6 +153,15 @@ func (controller *WithdrawController) ManageWithdraw(c echo.Context) error {
 				"message": err.Error(),
 			})
 		}
+	} else if withdraw.Status == "hapus" {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, "id withdraw not found")
+		}
+		err = database.DeleteWithdraw(id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "failed delete data")
+		}
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{
