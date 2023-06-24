@@ -31,6 +31,7 @@ type WithdrawResponse struct {
 }
 
 type WithdrawsResponse struct {
+	Id 			uint    `json:"id"`
 	ReferenceNumber string  `json:"reference_number"`
 	Method          string  `json:"method"`
 	Bank            string  `json:"bank"`

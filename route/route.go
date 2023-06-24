@@ -86,6 +86,7 @@ func New() *echo.Echo {
 	eAdm.GET("/doctors", doctorAdminController.GetDoctors)
 	eAdm.GET("/doctor/:id", doctorAdminController.GetDoctor)
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
+	eAdm.GET("/doctor/order", doctorAdminController.GetDoctorWithKomisi)
 	eAdm.DELETE("/doctor/:id", doctorAdminController.DeleteDoctor)
 	eAdm.GET("/withdraw", withdraw.GetWithdraws)
 	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)

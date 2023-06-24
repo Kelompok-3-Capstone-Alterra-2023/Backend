@@ -333,8 +333,10 @@ func (controller *OrderController) OrderManual(c echo.Context) error {
 	}
 
 	totalAmount := booking.Price + booking.ServiceFee
+	doctorKomisi := booking.Price
 	payment := model.Payment{
 		OrderID:         order.ID,
+		Komisi: 	doctorKomisi,
 		PaymentMethod:   booking.PaymentMethod,
 		TotalPrice:      totalAmount,
 		TransferStatus:  "success",
@@ -346,7 +348,7 @@ func (controller *OrderController) OrderManual(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
-	newBalance := doctor.Balance + payment.TotalPrice
+	newBalance := doctor.Balance + payment.Komisi
 	err = database.UpdateBalanceDoctor(doctorID, newBalance)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
