@@ -61,6 +61,7 @@ type DoctorAdminController struct{}
 func (a *DoctorAdminController) RejectDoctor(c echo.Context) error {
 	var doctor model.Doctor
 
+	message := c.FormValue("message")
 	// Cari dokter berdasarkan ID
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -80,6 +81,10 @@ func (a *DoctorAdminController) RejectDoctor(c echo.Context) error {
 	doctor.BirthDate = parsedTime.Format("2006-01-02")
 	if err := config.DB.Save(&doctor).Error; err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "failed to save changes")
+	}
+
+	if err:=email.SendEmail(doctor.FullName, doctor.Email, "Registration Info", message); err!=nil{
+		return c.JSON(http.StatusBadRequest, "failed to send email")
 	}
 
 	return c.JSON(http.StatusOK, "doctor registration rejected")
