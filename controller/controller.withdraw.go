@@ -19,6 +19,11 @@ type WithdrawController struct{}
 func (controller *WithdrawController) RequestWithdraw(c echo.Context) error {
 	var withdraw model.Withdraw
 	c.Bind(&withdraw)
+	if withdraw.Amount>=5000000{
+		withdraw.TransactionFee=100000
+	}else{
+		withdraw.TransactionFee=50000
+	}
 	withdraw.Total = withdraw.Amount + withdraw.TransactionFee
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 	doctorID, err := middleware.ExtractDocterIdToken(token)
@@ -41,6 +46,7 @@ func (controller *WithdrawController) RequestWithdraw(c echo.Context) error {
 		})
 	}
 
+	withdraw.AccountName = doctor.FullName
 	withdraw.Doctor.Email = doctor.Email
 	withdraw.DoctorID = uint(doctorID)
 	withdraw.Status = "queued"
@@ -51,6 +57,7 @@ func (controller *WithdrawController) RequestWithdraw(c echo.Context) error {
 			"message": err.Error(),
 		})
 	}
+
 	date := monday.Format(time.Now(), "02 January 2006", monday.LocaleIdID)
 	response := model.WithdrawResponse{
 		ReferenceNumber: withdraw.ReferenceNumber,

@@ -60,7 +60,8 @@ func New() *echo.Echo {
 	eDoc.GET("/articles", articleDoctorController.GetArticles)
 	eDoc.GET("/articles/:id", articleDoctorController.GetArticle)
 	eDoc.GET("/articles/search", articleDoctorController.SearchArticles)
-	eDoc.GET("/:id/schedules", orderUserController.GetSchedules)
+	eDoc.GET("/schedules", orderUserController.GetSchedules)
+	eDoc.POST("/schedules/:id", orderUserController.SendLinkCall)
 	eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
 	eDoc.PUT("/", doctorDoctorController.UpdateDoctor)
 	eDoc.POST("/recipt", doctorRecipt.CreateRecipt)
@@ -81,6 +82,7 @@ func New() *echo.Echo {
 	eAdm.GET("/articles/:status", articleAdminController.GetArticleByStatus)
 	eAdm.GET("/articles/search", articleAdminController.SearchArticles)
 	eAdm.PUT("/doctors/:id/approve", doctorAdminController.ApproveDoctor)
+	eAdm.PUT("/doctors/:id/reject", doctorAdminController.RejectDoctor)
 	eAdm.GET("/doctors", doctorAdminController.GetDoctors)
 	eAdm.GET("/doctor/:id", doctorAdminController.GetDoctor)
 	eAdm.PUT("/doctor/:id", doctorAdminController.UpdateDoctor)
@@ -89,8 +91,8 @@ func New() *echo.Echo {
 	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
 	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
 	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.GET("/doctor/chat/:Authorization", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.GET("/chathistory/:id", controller.GetAllChatHistory, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/doctor/chat/:Authorization", controller.ConnectWSDoctor)
+	e.GET("/chathistory/:id",controller.GetAllChatHistory,jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 
 	doctorAllController := controller.DoctorAllController{}
 	e.GET("/doctors", doctorAllController.GetDoctors)
