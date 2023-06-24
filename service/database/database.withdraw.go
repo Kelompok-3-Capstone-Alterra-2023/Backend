@@ -57,3 +57,7 @@ func SearchWithdraw(keyword string) ([]model.WithdrawForGet, error) {
 
 	return withdraw, nil
 }
+
+func DeleteWithdraw(id int) error {
+	return config.DB.Delete(&model.Withdraw{}, id).Error
+}
