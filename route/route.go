@@ -90,7 +90,7 @@ func New() *echo.Echo {
 	eAdm.POST("/withdraw/:id", withdraw.ManageWithdraw)
 	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
 	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
-	e.GET("/doctor/chat/:Authorization", controller.ConnectWSDoctor, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/doctor/chat/:Authorization", controller.ConnectWSDoctor)
 	e.GET("/chathistory/:id",controller.GetAllChatHistory,jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 
 	doctorAllController := controller.DoctorAllController{}
