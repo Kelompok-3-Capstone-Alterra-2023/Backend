@@ -24,7 +24,7 @@ type Jwtcustomclaims struct {
 	Alamat        string `json:"alamat" form:"alamat" gorm:"type:text"`
 	Gender        string `json:"gender" form:"gender" gorm:"type:varchar(2)"`
 	Status_Online bool   `json:"status_online" form:"status_online" gorm:"type:boolean"`
-	Role 		string `json:"role" form:"role"`
+	Role          string `json:"role" form:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -46,7 +46,7 @@ func CreateJWT(user model.User) interface{} {
 	alamat := user.Alamat
 	gender := user.Gender
 	online := user.Status_Online
-	role :="user"
+	role := "user"
 
 	claims := &Jwtcustomclaims{
 		uint(id),
@@ -59,7 +59,7 @@ func CreateJWT(user model.User) interface{} {
 		online,
 		role,
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
 		},
 	}
 
@@ -75,15 +75,15 @@ func CreateJWT(user model.User) interface{} {
 
 func CreateDoctorJWT(doctorID uint) (string, error) {
 	claims := jwt.MapClaims{}
-	claims["role"]="doctor"
+	claims["role"] = "doctor"
 	claims["authorized"] = true
 	claims["doctor_id"] = doctorID
-	claims["exp"] = time.Now().Add(time.Hour * 2).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte("secret"))
 }
 
-func ExtractDocterIdToken(token string) (float64 , error){
+func ExtractDocterIdToken(token string) (float64, error) {
 	claims := jwt.MapClaims{}
 	tempToken, err := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
 		return []byte("secret"), nil
@@ -96,7 +96,7 @@ func CreateAdminJWT(adminID uint) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["admin_id"] = adminID
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte("secret"))
 }
@@ -110,9 +110,9 @@ func ExtractAdminIdToken(token string) (float64, error) {
 	return tempToken.Claims.(jwt.MapClaims)["adminID"].(float64), err
 }
 
-func ExtractUserIdToken(token string) (float64) {
+func ExtractUserIdToken(token string) float64 {
 	claims := jwt.MapClaims{}
-	tempToken, _:= jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
 		return []byte("secret"), nil
 	},
 	)
@@ -121,19 +121,19 @@ func ExtractUserIdToken(token string) (float64) {
 
 func ExtractToken(token string) (float64, string) {
 	claims := jwt.MapClaims{}
-	tempToken, _:= jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
 		return []byte("secret"), nil
 	},
 	)
-	if tempToken.Claims.(jwt.MapClaims)["role"]=="doctor"{
+	if tempToken.Claims.(jwt.MapClaims)["role"] == "doctor" {
 		return tempToken.Claims.(jwt.MapClaims)["doctor_id"].(float64), "doctor"
-	}else if tempToken.Claims.(jwt.MapClaims)["role"]=="user"{
+	} else if tempToken.Claims.(jwt.MapClaims)["role"] == "user" {
 		return tempToken.Claims.(jwt.MapClaims)["ID"].(float64), "user"
 	}
 	return 0, "none"
 }
 
-func CreateForgotPasswordJWT(user model.ForgotPassword, role string)(string, error){
+func CreateForgotPasswordJWT(user model.ForgotPassword, role string) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["email"] = user.Email
 	claims["code"] = user.Code
@@ -145,11 +145,9 @@ func CreateForgotPasswordJWT(user model.ForgotPassword, role string)(string, err
 
 func ExtractForgotPasswordToken(token string) (string, string, string) {
 	claims := jwt.MapClaims{}
-	tempToken, _:= jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
+	tempToken, _ := jwt.ParseWithClaims(token, claims, func(tempToken *jwt.Token) (interface{}, error) {
 		return []byte("verysecret"), nil
 	},
 	)
 	return tempToken.Claims.(jwt.MapClaims)["email"].(string), tempToken.Claims.(jwt.MapClaims)["code"].(string), tempToken.Claims.(jwt.MapClaims)["role"].(string)
 }
-
-

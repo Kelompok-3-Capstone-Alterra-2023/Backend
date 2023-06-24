@@ -100,6 +100,7 @@ func (controller *WithdrawController) GetWithdraws(c echo.Context) error {
 	var response []model.WithdrawsResponse
 	for i := range withdraws {
 		var withdraw model.WithdrawsResponse
+		withdraw.Id = withdraws[i].ID
 		withdraw.ReferenceNumber = withdraws[i].ReferenceNumber
 		withdraw.Method = withdraws[i].Method
 		withdraw.Bank = withdraws[i].Bank
@@ -159,6 +160,15 @@ func (controller *WithdrawController) ManageWithdraw(c echo.Context) error {
 			return c.JSON(http.StatusInternalServerError, map[string]string{
 				"message": err.Error(),
 			})
+		}
+	} else if withdraw.Status == "hapus" {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, "id withdraw not found")
+		}
+		err = database.DeleteWithdraw(id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "failed delete data")
 		}
 	}
 

@@ -163,9 +163,9 @@ func createChatRoom(user model.User, doctor model.Doctor) (model.ChatRoom, error
 	result := config.DB.Model(&ChatRoom).Create(model.ChatRoom{
 		UserID:   user.ID,
 		DoctorID: doctor.ID,
-	})
+	}).Error
 
-	if result.RowsAffected < 1 {
+	if result != nil {
 		return model.ChatRoom{}, nil
 	}
 	var Chatroom model.ChatRoom
@@ -191,9 +191,10 @@ func GetAllChatHistory(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
 	id, role := middleware.ExtractToken(token)
 	idDoctorUser := c.Param("id")
-	var chat model.Chat
+	var chat []model.Chat
 
 	if role == "doctor" {
+		//kayaknya error di bagian nama fieldnya
 		config.DB.Model(&model.Chat{}).Where("doctor_idno_fk = ? AND user_idno_fk = ?", id, idDoctorUser).Find(&chat)
 	} else if role == "user" {
 		config.DB.Model(&model.Chat{}).Where("doctor_idno_fk = ? AND user_idno_fk = ?", idDoctorUser, id).Find(&chat)
