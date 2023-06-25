@@ -329,10 +329,10 @@ func (controller *OrderController) OrderManual(c echo.Context) error {
 	}
 
 	totalAmount := booking.Price + booking.ServiceFee
-	// doctorKomisi := booking.Price
+	doctorKomisi := booking.Price
 	payment := model.Payment{
-		OrderID: order.ID,
-		// Komisi: 	doctorKomisi,
+		OrderID:         order.ID,
+		Komisi:          doctorKomisi,
 		PaymentMethod:   booking.PaymentMethod,
 		TotalPrice:      totalAmount,
 		TransferStatus:  "success",
