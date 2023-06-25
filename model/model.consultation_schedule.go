@@ -26,6 +26,7 @@ type ConsultationScheduleResponse struct {
 }
 type Schedules struct {
 	ID         uint   `json:"id"`
+	UserID    uint   `json:"user_id"`
 	UserName   string `json:"user_name"`
 	UserGender string `json:"user_gender"`
 	Method     string `json:"method"`

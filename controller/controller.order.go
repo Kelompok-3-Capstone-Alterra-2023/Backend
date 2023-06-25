@@ -209,6 +209,7 @@ func (controller *OrderController) GetSchedules(c echo.Context) error {
 		var schedule model.Schedules
 		date := schedules[i].Schedule.Format("02/01/2006 15:04")
 		schedule.ID = schedules[i].ID
+		schedule.UserID = schedules[i].User.ID
 		schedule.Method = schedules[i].Method
 		schedule.Date = date
 		schedule.Status = schedules[i].Status
@@ -220,6 +221,14 @@ func (controller *OrderController) GetSchedules(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"message": "success",
 		"data":    response,
+	})
+}
+
+func (controller *OrderController)EndConsultation(c echo.Context) error {
+	scheduleID := c.Param("id")
+	database.EndConsultation(scheduleID)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success",
 	})
 }
 

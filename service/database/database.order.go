@@ -112,3 +112,11 @@ func SendLinkById(id string, link string) (model.ConsultationSchedule, error) {
 
 	return schedule, nil
 }
+
+func EndConsultation(id string) error {
+	if err := config.DB.Table("consultation_schedules").Where("id = ?", id).Update("status", "selesai").Error; err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -354,6 +354,10 @@ func (a *DoctorAdminController)GetDoctorWithKomisi(c echo.Context) error {
 			history.Komisi = history.Komisi + komisi[j].TotalPrice
 		}
 		history.Tanggal = doctors[i].CreatedAt.Format("2006-01-02")
+		history.CV = doctors[i].CV
+		history.Ijazah = doctors[i].Ijazah
+		history.SIP = doctors[i].SIP
+		history.STR = doctors[i].STR
 		response = append(response, history)
 	}
 	return c.JSON(http.StatusOK, map[string]interface{}{
