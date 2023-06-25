@@ -32,4 +32,7 @@ type Schedules struct {
 	Method     string `json:"method"`
 	Status     string `json:"status"`
 	Date       string `json:"date"`
+	//add this
+	OrderID  uint      `json:"order_id" form:"order_id"`
+	Order Order			`gorm:"foreignKey:OrderID"`
 }

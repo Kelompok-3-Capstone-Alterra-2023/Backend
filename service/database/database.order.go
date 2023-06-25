@@ -39,7 +39,8 @@ func SaveSchedule(schedule *model.ConsultationSchedule) error {
 
 func CheckScheduleByDoctorId(id string) ([]model.ConsultationScheduleResponse, error) {
 	var schedule []model.ConsultationScheduleResponse
-	if err := config.DB.Table("consultation_schedules").Where("doctor_id = ? AND schedule >= CURDATE() AND schedule <= DATE_ADD(NOW(), INTERVAL 7 DAY)", id).Scan(&schedule).Error; err != nil {
+	//add preload
+	if err := config.DB.Table("consultation_schedules").Preload("Order").Where("doctor_id = ? AND schedule >= CURDATE() AND schedule <= DATE_ADD(NOW(), INTERVAL 7 DAY)", id).Scan(&schedule).Error; err != nil {
 		return nil, err
 	}
 
