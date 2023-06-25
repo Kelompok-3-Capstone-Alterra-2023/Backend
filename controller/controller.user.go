@@ -16,6 +16,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func RegisterUser(c echo.Context) error {
@@ -362,6 +363,6 @@ func (*UserOrder) GetUserOrder(c echo.Context) error {
 
 func getorderhistory(id int) []model.ConsultationSchedule {
 	var orderhistory []model.ConsultationSchedule
-	config.DB.Model(&model.ConsultationSchedule{}).Preload("order").Where("user_id = ? AND status = ?", id, "selesai").Find(&orderhistory)
+	config.DB.Model(&model.ConsultationSchedule{}).Preload(clause.Associations).Where("user_id = ? AND status = ?", id, "selesai").Find(&orderhistory)
 	return orderhistory
 }
