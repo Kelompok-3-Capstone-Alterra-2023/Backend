@@ -2,13 +2,13 @@ package model
 
 import "gorm.io/gorm"
 
-type ChatRoom struct {
+type Chatroom struct {
 	UserID       uint
 	DoctorID     uint
 	StatusAccess string `json:"status_access" from:"status_access"`
 }
 
-func (Chatroom *ChatRoom) BeforeSave(db *gorm.DB) error {
+func (Chatroom *Chatroom) BeforeSave(db *gorm.DB) error {
 	Chatroom.StatusAccess = "access"
 	return nil
 }

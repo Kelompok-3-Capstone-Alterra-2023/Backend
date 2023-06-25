@@ -42,7 +42,7 @@ func Open() error {
 
 func InitMigrate() {
 	//jangan dibalik
-	err := DB.SetupJoinTable(&model.Doctor{}, "ChatwithUser", &model.ChatRoom{})
+	err := DB.SetupJoinTable(&model.Doctor{}, "ChatwithUser", &model.Chatroom{})
 	if err != nil {
 		log.Println("failed when join table in table chat room")
 	}

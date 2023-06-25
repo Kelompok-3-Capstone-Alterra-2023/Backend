@@ -102,7 +102,7 @@ func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocke
 		}
 	}()
 
-	chatroom := model.ChatRoom{}
+	chatroom := model.Chatroom{}
 	for {
 		message := Message{}
 
@@ -152,27 +152,27 @@ func closeconn(currentconn *websocket.Conn, message Message) {
 	wsconnuser[message.From] = filtered.(*websocket.Conn)
 }
 
-func createChatRoom(user model.User, doctor model.Doctor) (model.ChatRoom, error) {
+func createChatRoom(user model.User, doctor model.Doctor) (model.Chatroom, error) {
 
 	err := config.DB.Model(&doctor).Where("id = ?", doctor.ID).Association("ChatwithUser").Append(&user)
 	if err != nil {
-		return model.ChatRoom{}, err
+		return model.Chatroom{}, err
 	}
 
-	result := config.DB.Model(model.ChatRoom{}).Create(model.ChatRoom{
+	result := config.DB.Model(model.Chatroom{}).Create(model.Chatroom{
 		UserID:   user.ID,
 		DoctorID: doctor.ID,
 	}).Error
 
 	if result != nil {
-		return model.ChatRoom{}, result
+		return model.Chatroom{}, result
 	}
 	var Chatroom model.ChatRoom
-	config.DB.Model(model.ChatRoom{}).Where("user_id = ? AND doctor_id = ?", user.ID, doctor.ID).Find(&Chatroom)
+	config.DB.Model(model.Chatroom{}).Where("user_id = ? AND doctor_id = ?", user.ID, doctor.ID).Find(&Chatroom)
 	return Chatroom, nil
 }
 
-func saveMessage(message Message, chatroom model.ChatRoom, roles string) bool {
+func saveMessage(message Message, chatroom model.Chatroom, roles string) bool {
 	chat := model.Chat{}
 	chat.UserIDnoFK = int(chatroom.UserID)
 	chat.DoctorIDnoFK = int(chatroom.DoctorID)
