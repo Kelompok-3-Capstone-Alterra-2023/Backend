@@ -167,7 +167,7 @@ func createChatRoom(user model.User, doctor model.Doctor) (model.Chatroom, error
 	if result != nil {
 		return model.Chatroom{}, result
 	}
-	var Chatroom model.ChatRoom
+	var Chatroom model.Chatroom
 	config.DB.Model(model.Chatroom{}).Where("user_id = ? AND doctor_id = ?", user.ID, doctor.ID).Find(&Chatroom)
 	return Chatroom, nil
 }
