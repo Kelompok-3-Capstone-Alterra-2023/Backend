@@ -62,6 +62,7 @@ func New() *echo.Echo {
 	eDoc.GET("/articles/search", articleDoctorController.SearchArticles)
 	eDoc.GET("/schedules", orderUserController.GetSchedules)
 	eDoc.POST("/schedules/:id", orderUserController.SendLinkCall)
+	eDoc.PUT("/schedules/:id", orderUserController.EndConsultation)
 	eDoc.GET("/doctors", doctorDoctorController.GetDoctors)
 	eDoc.PUT("/", doctorDoctorController.UpdateDoctor)
 	eDoc.POST("/recipt/:id", doctorRecipt.CreateRecipt)

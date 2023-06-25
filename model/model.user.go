@@ -6,8 +6,8 @@ import (
 
 type User struct {
 	gorm.Model
-	Email          string   `json:"email" form:"email" gorm:"type:varchar(255)unique;not null"`
-	Username       string   `json:"username" form:"username" gorm:"type:varchar(255)unique;not null"`
+	Email          string   `json:"email" form:"email" gorm:"type:varchar(50)unique;not null"`
+	Username       string   `json:"username" form:"username" gorm:"type:varchar(50)unique;not null"`
   	Fullname 	     string `json:"fullname" form:"fullname" gorm:"type:varchar(255)"`
 	Password       string   `json:"password" form:"password" gorm:"not null"`
 	Telp           string   `json:"telpon" form:"telpon" gorm:"varchar(20)"`

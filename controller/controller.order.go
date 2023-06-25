@@ -223,6 +223,14 @@ func (controller *OrderController) GetSchedules(c echo.Context) error {
 	})
 }
 
+func (controller *OrderController)EndConsultation(c echo.Context) error {
+	scheduleID := c.Param("id")
+	database.EndConsultation(scheduleID)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success",
+	})
+}
+
 func (controller *OrderController) MidtransNotification(c echo.Context) error {
 	var notification model.Notification
 	if err := c.Bind(&notification); err != nil {

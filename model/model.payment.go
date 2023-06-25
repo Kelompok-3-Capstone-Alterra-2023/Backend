@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Payment struct {
 	gorm.Model
 	OrderID uint `json:"order_id" form:"order_id"`
-	// Komisi          float64 `json:"komisi" form:"komisi"`
+	Komisi          float64 `json:"komisi" form:"komisi"`
 	TotalPrice      float64 `json:"total_price" form:"total_price"`
 	PaymentMethod   string  `json:"payment_method" form:"payment_method"`
 	TransferStatus  string  `json:"transfer_status" form:"transfer_status"`
