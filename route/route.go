@@ -25,6 +25,7 @@ func New() *echo.Echo {
 	articleUserController := controller.ArticleUserController{}
 	doctorUserController := controller.DoctorUserController{}
 	orderUserController := controller.OrderController{}
+	userorder := controller.UserOrder{}
 
 	eUser := e.Group("user")
 	eUser.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
@@ -46,6 +47,7 @@ func New() *echo.Echo {
 	eUser.DELETE("/doctor/:id/doctorfav", controller.DeleteDoctorFavorite)
 	eUser.GET("/doctors/doctorfav", controller.GetDoctorFav)
 	eUser.GET("/recipt/:id", controller.GetDetailReciptUser)
+	eUser.GET("/orderhisotry", userorder.GetUserOrder)
 
 	articleDoctorController := controller.ArticleDoctorController{}
 	doctorDoctorController := controller.DoctorDoctorController{}

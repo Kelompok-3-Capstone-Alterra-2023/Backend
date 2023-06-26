@@ -16,9 +16,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
-func  RegisterUser(c echo.Context) error {
+func RegisterUser(c echo.Context) error {
 	var user model.User
 	var otp model.UserOTP
 
@@ -303,14 +304,14 @@ func ForgotPasswordUser(c echo.Context) error {
 	})
 }
 
-func UpdatePasswordUser(c echo.Context) error{
+func UpdatePasswordUser(c echo.Context) error {
 	var forgot model.ForgotPassword
 	var users model.User
 	var doctors model.Doctor
 	jwtToken := c.Param("hash")
 	email, code, role := m.ExtractForgotPasswordToken(jwtToken)
-	if role == "user"{
-		if err:=config.DB.Where("email = ? AND code = ?", email, code).First(&forgot).Error; err != nil {
+	if role == "user" {
+		if err := config.DB.Where("email = ? AND code = ?", email, code).First(&forgot).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to find email",
 				"error":   err.Error(),
@@ -325,8 +326,8 @@ func UpdatePasswordUser(c echo.Context) error{
 				"error":   err.Error(),
 			})
 		}
-	}else if role == "doctor"{
-		if err:=config.DB.Where("email = ? AND code = ?", email, code).First(&forgot).Error; err != nil {
+	} else if role == "doctor" {
+		if err := config.DB.Where("email = ? AND code = ?", email, code).First(&forgot).Error; err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]interface{}{
 				"message": "failed to find email",
 				"error":   err.Error(),
@@ -346,4 +347,22 @@ func UpdatePasswordUser(c echo.Context) error{
 		"message": "success update password",
 	})
 
+}
+
+type UserOrder struct{}
+
+func (*UserOrder) GetUserOrder(c echo.Context) error {
+	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
+	userID := int(m.ExtractUserIdToken(token))
+	orderhistory := getorderhistory(userID)
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message":       "success get order history",
+		"order history": orderhistory,
+	})
+}
+
+func getorderhistory(id int) []model.ConsultationSchedule {
+	var orderhistory []model.ConsultationSchedule
+	config.DB.Model(&model.ConsultationSchedule{}).Preload(clause.Associations).Where("user_id = ? AND status = ?", id, "selesai").Find(&orderhistory)
+	return orderhistory
 }
