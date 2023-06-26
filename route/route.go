@@ -14,7 +14,7 @@ import (
 
 func New() *echo.Echo {
 	e := echo.New()
-	// e.Pre(middleware.HTTPSRedirect())
+	e.Pre(middleware.HTTPSRedirect())
 	m.LogMiddleware(e)
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
@@ -25,6 +25,7 @@ func New() *echo.Echo {
 	articleUserController := controller.ArticleUserController{}
 	doctorUserController := controller.DoctorUserController{}
 	orderUserController := controller.OrderController{}
+	userorder := controller.UserOrder{}
 
 	eUser := e.Group("user")
 	eUser.Use(jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
@@ -46,6 +47,7 @@ func New() *echo.Echo {
 	eUser.DELETE("/doctor/:id/doctorfav", controller.DeleteDoctorFavorite)
 	eUser.GET("/doctors/doctorfav", controller.GetDoctorFav)
 	eUser.GET("/recipt/:id", controller.GetDetailReciptUser)
+	eUser.GET("/orderhisotry", userorder.GetUserOrder)
 
 	articleDoctorController := controller.ArticleDoctorController{}
 	doctorDoctorController := controller.DoctorDoctorController{}
@@ -94,7 +96,7 @@ func New() *echo.Echo {
 	eAdm.GET("/withdraw/search", withdraw.GetWithdraws)
 	e.GET("/chat", controller.ConnectWS, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 	e.GET("/doctor/chat/:Authorization", controller.ConnectWSDoctor)
-	e.GET("/chathistory/:id",controller.GetAllChatHistory,jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
+	e.GET("/chathistory/:id", controller.GetAllChatHistory, jwtMid.JWT([]byte(constant.JWT_SECRET_KEY)))
 
 	doctorAllController := controller.DoctorAllController{}
 	e.GET("/doctors", doctorAllController.GetDoctors)

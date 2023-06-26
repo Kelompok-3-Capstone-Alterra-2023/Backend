@@ -31,6 +31,7 @@ type Message struct {
 	From    int
 	To      int    `json:"to"`
 	Message string `json:"message"`
+	Sender string  `json:"sender"`
 }
 
 // func ConnectWSUser(c echo.Context) error {
@@ -59,22 +60,23 @@ func ConnectWS(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "failure when connect websocket")
 	}
 
-	if role == "doctor" {
-		wsconndoctor[int(id)] = currentconn
-		go handleIO(currentconn, wsconnuser, int(id), role)
-		return c.JSON(http.StatusAccepted, "success create connection")
-	} else if role == "user" {
+	// if role == "doctor" {
+	// 	wsconndoctor[int(id)] = currentconn
+	// 	go handleIO(currentconn, wsconnuser, int(id), role)
+	// 	return c.JSON(http.StatusAccepted, "success create connection")
+	// } else if role == "user" {
 		wsconnuser[int(id)] = currentconn
-		go handleIO(currentconn, wsconndoctor, int(id), role)
+		go handleIO(currentconn, wsconndoctor, int(id), "user")
 		return c.JSON(http.StatusAccepted, "success create connection")
-	}
-	return c.JSON(http.StatusBadRequest, "failure when connect websocket")
+	// }
+	
+	// return c.JSON(http.StatusBadRequest, "failure when connect websocket")
 
 }
 
 func ConnectWSDoctor(c echo.Context) error {
 	token := c.Param("Authorization")
-	doctorID, err := middleware.ExtractDocterIdToken(token)
+	doctorID, err := middleware.ExtractToken(token)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
@@ -117,6 +119,7 @@ func handleIO(currentconn *websocket.Conn, connectionmapsender map[int]*websocke
 			chatroom.UserID = uint(message.To)
 		}
 		message.From = from
+		message.Sender = roles
 
 		if err != nil {
 

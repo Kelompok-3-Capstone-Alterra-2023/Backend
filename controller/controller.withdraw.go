@@ -19,10 +19,10 @@ type WithdrawController struct{}
 func (controller *WithdrawController) RequestWithdraw(c echo.Context) error {
 	var withdraw model.Withdraw
 	c.Bind(&withdraw)
-	if withdraw.Amount>=5000000{
-		withdraw.TransactionFee=100000
-	}else{
-		withdraw.TransactionFee=50000
+	if withdraw.Amount >= 5000000 {
+		withdraw.TransactionFee = 100000
+	} else {
+		withdraw.TransactionFee = 50000
 	}
 	withdraw.Total = withdraw.Amount + withdraw.TransactionFee
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
@@ -49,7 +49,7 @@ func (controller *WithdrawController) RequestWithdraw(c echo.Context) error {
 	withdraw.AccountName = doctor.FullName
 	withdraw.Doctor.Email = doctor.Email
 	withdraw.DoctorID = uint(doctorID)
-	withdraw.Status = "queued"
+	withdraw.Status = "waiting"
 	withdraw.ReferenceNumber = util.GenerateRandomReferenceNumber()
 	err = database.SaveWithdraw(&withdraw)
 	if err != nil {
@@ -111,6 +111,7 @@ func (controller *WithdrawController) GetWithdraws(c echo.Context) error {
 		withdraw.TransactionFee = withdraws[i].TransactionFee
 		withdraw.Total = withdraws[i].Total
 		withdraw.Date = withdraws[i].CreatedAt.Format("02/01/2006")
+		withdraw.Status = withdraws[i].Status
 
 		response = append(response, withdraw)
 	}
