@@ -52,7 +52,7 @@ type Message struct {
 
 func ConnectWS(c echo.Context) error {
 	token := strings.Fields(c.Request().Header.Values("Authorization")[0])[1]
-	id, role := middleware.ExtractToken(token)
+	id, _ := middleware.ExtractToken(token)
 
 	currentconn, err := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
 
@@ -76,14 +76,7 @@ func ConnectWS(c echo.Context) error {
 
 func ConnectWSDoctor(c echo.Context) error {
 	token := c.Param("Authorization")
-	doctorID, err := middleware.ExtractToken(token)
-
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"message": "failed when cast jwt",
-			"error":   err,
-		})
-	}
+	doctorID, _ := middleware.ExtractToken(token)
 
 	currentconn, err2 := upgrader.Upgrade(c.Response().Writer, c.Request(), c.Response().Header())
 
