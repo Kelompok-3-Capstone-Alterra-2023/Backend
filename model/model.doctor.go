@@ -57,11 +57,15 @@ type OrderDetailDoctorResponse struct {
 }
 
 type OrderDetailAdminHistoryResponse struct {
-	gorm.Model
+	Id 			uint    `json:"id" form:"id"`
 	DoctorName 	string  `json:"doctor_name" form:"doctor_name"`
 	DoctorEmail string  `json:"doctor_email" form:"doctor_email"`
 	Komisi 		float64 `json:"komisi" form:"komisi"`
 	Tanggal 	string  `json:"tanggal" form:"tanggal"`
+	CV 			string  `json:"cv" form:"cv"`
+	Ijazah 		string  `json:"ijazah" form:"ijazah"`
+	STR 		string  `json:"str" form:"str"`
+	SIP 		string  `json:"sip" form:"sip"`
 }
 
 type KomisiDoctor struct{

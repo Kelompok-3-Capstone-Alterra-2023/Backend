@@ -17,17 +17,9 @@ func SaveWithdraw(data *model.Withdraw) error {
 	return config.DB.Save(data).Error
 }
 
-// func GetWithdraws() ([]model.Withdraw, error) {
-// 	var withdraws []model.Withdraw
-// 	if err := config.DB.Preload("Doctor").Where("status = \"queued\"").Find(&withdraws).Error; err != nil {
-// 		return nil, err
-// 	}
-
-//		return withdraws, nil
-//	}
 func GetWithdraws() ([]model.WithdrawForGet, error) {
 	var withdraws []model.WithdrawForGet
-	if err := config.DB.Table("withdraws").Preload("Doctor").Where("withdraws.status = \"queued\"").Find(&withdraws).Error; err != nil {
+	if err := config.DB.Table("withdraws").Preload("Doctor").Find(&withdraws).Error; err != nil {
 		return nil, err
 	}
 
