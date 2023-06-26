@@ -55,6 +55,7 @@ type AllArticleDoctorResponse struct {
 
 type AllArticleAdminResponse struct {
 	ID         uint   `json:"id" form:"id"`
+	Thumbnail string `json:"thumbnail" form:"thumbnail"`
 	Full_Name  string `json:"doctor_name" form:"doctor_name"`
 	Content   string `json:"content" form:"content"`
 	Title      string `json:"title" form:"title"`

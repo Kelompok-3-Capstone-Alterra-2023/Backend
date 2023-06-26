@@ -93,7 +93,7 @@ func UserSearchArticles(title string) ([]model.AllArticleResponse, error) {
 // ADMIN
 func AdminGetArticles() ([]model.AllArticleAdminResponse, error) {
 	var articles []model.AllArticleAdminResponse
-	if err := config.DB.Table("articles").Select("articles.id, articles.title, articles.content ,articles.category, articles.created_at, doctors.full_name, articles.status").Joins("left join doctors on articles.doctor_id = doctors.id").Where("articles.deleted_at is null").Scan(&articles).Error; err != nil {
+	if err := config.DB.Table("articles").Select("articles.id, articles.thumbnail ,articles.title, articles.content ,articles.category, articles.created_at, doctors.full_name, articles.status").Joins("left join doctors on articles.doctor_id = doctors.id").Where("articles.deleted_at is null").Scan(&articles).Error; err != nil {
 		return nil, err
 	}
 
