@@ -224,7 +224,7 @@ func (controller *OrderController) GetSchedules(c echo.Context) error {
 	})
 }
 
-func (controller *OrderController)EndConsultation(c echo.Context) error {
+func (controller *OrderController) EndConsultation(c echo.Context) error {
 	scheduleID := c.Param("id")
 	database.EndConsultation(scheduleID)
 	return c.JSON(http.StatusOK, map[string]interface{}{
@@ -381,8 +381,8 @@ func (controller *OrderController) OrderManual(c echo.Context) error {
 	chatroom, errroom := createChatRoom(user, doctor)
 
 	if errroom != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"message": "success booking but fail get chatroom",
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"message": "success booking",
 		})
 	}
 
