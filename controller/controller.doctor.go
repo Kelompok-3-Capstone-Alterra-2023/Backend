@@ -825,7 +825,7 @@ func ForgotPasswordDoctor(c echo.Context) error {
 			"error":   err.Error(),
 		})
 	}
-	linkURL := fmt.Sprintf("https://capstone-project.duckdns.org:8080/resetpassword/%s", jwtForgot)
+	linkURL := fmt.Sprintf("https://main--melodious-genie-0706de.netlify.app/new-password/%s", jwtForgot)
 	if err := email.SendEmail(doctors.FullName, doctor.Email, "Forgot Password", linkURL); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
 			"message": "failed to send email",
