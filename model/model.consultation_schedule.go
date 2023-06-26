@@ -26,13 +26,10 @@ type ConsultationScheduleResponse struct {
 }
 type Schedules struct {
 	ID         uint   `json:"id"`
-	UserID    uint   `json:"user_id"`
+	UserID     uint   `json:"user_id"`
 	UserName   string `json:"user_name"`
 	UserGender string `json:"user_gender"`
 	Method     string `json:"method"`
 	Status     string `json:"status"`
 	Date       string `json:"date"`
-	//add this
-	OrderID  uint      `json:"order_id" form:"order_id"`
-	Order Order			`gorm:"foreignKey:OrderID"`
 }

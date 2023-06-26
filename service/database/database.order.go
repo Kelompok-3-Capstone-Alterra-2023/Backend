@@ -40,7 +40,7 @@ func SaveSchedule(schedule *model.ConsultationSchedule) error {
 func CheckScheduleByDoctorId(id string) ([]model.ConsultationScheduleResponse, error) {
 	var schedule []model.ConsultationScheduleResponse
 	//add preload
-	if err := config.DB.Table("consultation_schedules").Preload("Order").Where("doctor_id = ? AND schedule >= CURDATE() AND schedule <= DATE_ADD(NOW(), INTERVAL 7 DAY)", id).Scan(&schedule).Error; err != nil {
+	if err := config.DB.Table("consultation_schedules").Where("doctor_id = ? AND schedule >= CURDATE() AND schedule <= DATE_ADD(NOW(), INTERVAL 7 DAY)", id).Scan(&schedule).Error; err != nil {
 		return nil, err
 	}
 
@@ -107,7 +107,7 @@ func SendLinkById(id string, link string) (model.ConsultationSchedule, error) {
 		return schedule, err
 	}
 
-	if err := email.SendEmail(schedule.User.Username, schedule.User.Email, "Room call link",link); err != nil {
+	if err := email.SendEmail(schedule.User.Username, schedule.User.Email, "Room call link", link); err != nil {
 		return schedule, err
 	}
 
