@@ -52,7 +52,7 @@ jobs:
            with:
               instance_name: "backend-prevent"
               zone: "northamerica-northeast1-a"
-              user: "lenovo"
+              user: "LENOVO"
               ssh_private_key: "${{ secrets.GCP_SSH_PRIVATE_KEY }}"
               command: |
                  sudo docker stop capstone-project
